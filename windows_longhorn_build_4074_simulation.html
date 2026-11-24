@@ -1,0 +1,3398 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Microsoft Windows Longhorn — Build 4074.idx02.040425-1535</title>
+  <style>
+    /* ==========================================================================
+       1. ОСНОВНІ ЗМІННІ ТЕМИ (JADE, PLEX, AERO) ТА БАЗОВІ СТИЛІ
+       ========================================================================== */
+    :root {
+      --font-ui: "Segoe UI", Tahoma, "Trebuchet MS", Verdana, sans-serif;
+      --font-mono: "Lucida Console", "Consolas", monospace;
+      --sidebar-current-width: 210px;
+
+      /* Тема JADE (Стандартна для Build 4074, літо 2004) */
+      --taskbar-bg: linear-gradient(180deg, rgba(64, 96, 128, 0.92) 0%, rgba(28, 49, 71, 0.96) 50%, rgba(18, 34, 52, 0.98) 100%);
+      --taskbar-border: rgba(165, 205, 240, 0.45);
+      --sidebar-bg: linear-gradient(180deg, rgba(24, 42, 62, 0.78) 0%, rgba(14, 26, 40, 0.88) 100%);
+      --sidebar-tile-bg: rgba(255, 255, 255, 0.08);
+      --sidebar-tile-border: rgba(175, 215, 250, 0.28);
+
+      --win-frame-bg: rgba(114, 146, 178, 0.82);
+      --win-frame-inactive: rgba(148, 168, 188, 0.72);
+      --win-border: #3c5d7e;
+      --win-title-color: #ffffff;
+      --win-title-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+      --win-body-bg: #f4f7fa;
+      --win-header-bar: linear-gradient(180deg, #dde7f1 0%, #c1d3e6 100%);
+      --win-accent: #2c629b;
+      --win-btn-close: linear-gradient(180deg, #e87c6e 0%, #c93726 100%);
+      --win-btn-ctrl: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(130,170,210,0.35) 100%);
+      --blur-amount: 6px;
+    }
+
+    /* Тема PLEX (Збірки 4008–4051, насичений синій стиль) */
+    body.theme-plex {
+      --taskbar-bg: linear-gradient(180deg, #3b7be3 0%, #1d53b8 48%, #133c8f 100%);
+      --taskbar-border: #7fb3ff;
+      --sidebar-bg: linear-gradient(180deg, rgba(27, 74, 165, 0.86) 0%, rgba(15, 45, 112, 0.94) 100%);
+      --sidebar-tile-bg: rgba(140, 190, 255, 0.16);
+      --sidebar-tile-border: rgba(160, 210, 255, 0.45);
+
+      --win-frame-bg: linear-gradient(180deg, #4b8df2 0%, #2461c9 100%);
+      --win-frame-inactive: linear-gradient(180deg, #87aee8 0%, #6690d4 100%);
+      --win-border: #154296;
+      --win-title-color: #ffffff;
+      --win-title-shadow: 0 1px 2px rgba(0, 20, 70, 0.85);
+      --win-body-bg: #eef4fc;
+      --win-header-bar: linear-gradient(180deg, #d7e6fc 0%, #b3cef7 100%);
+      --win-accent: #1d57bd;
+      --blur-amount: 0px;
+    }
+
+    /* Тема AERO (Експериментальний темний скляний DCE збірки 4074) */
+    body.theme-aero {
+      --taskbar-bg: linear-gradient(180deg, rgba(35, 42, 52, 0.72) 0%, rgba(10, 14, 20, 0.88) 50%, rgba(5, 8, 12, 0.94) 100%);
+      --taskbar-border: rgba(140, 210, 255, 0.45);
+      --sidebar-bg: linear-gradient(180deg, rgba(16, 22, 30, 0.68) 0%, rgba(8, 12, 18, 0.82) 100%);
+      --sidebar-tile-bg: rgba(255, 255, 255, 0.06);
+      --sidebar-tile-border: rgba(135, 206, 250, 0.32);
+
+      --win-frame-bg: rgba(24, 34, 48, 0.66);
+      --win-frame-inactive: rgba(45, 55, 68, 0.52);
+      --win-border: rgba(130, 195, 245, 0.55);
+      --win-title-color: #ffffff;
+      --win-title-shadow: 0 0 8px rgba(120, 200, 255, 0.9), 0 1px 2px #000;
+      --win-body-bg: #f6f9fc;
+      --win-header-bar: linear-gradient(180deg, #e5eef7 0%, #c8daec 100%);
+      --win-accent: #185a9d;
+      --blur-amount: 14px;
+    }
+
+    body.sidebar-collapsed {
+      --sidebar-width: var(--sidebar-collapsed-width);
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    input, textarea, .selectable {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      background: #000;
+      color: #1a2430;
+    }
+
+    /* ==========================================================================
+       2. ЕКРАН ЗАВАНТАЖЕННЯ (BOOT SCREEN — BUILD 4074)
+       ========================================================================== */
+    #boot-screen {
+      position: fixed;
+      inset: 0;
+      background: #000000;
+      color: #d4dce6;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease;
+    }
+
+    .boot-logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 48px;
+    }
+
+    .boot-title-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .boot-ms {
+      font-size: 16px;
+      color: #9fb4cc;
+      letter-spacing: 0.5px;
+    }
+
+    .boot-win {
+      font-size: 38px;
+      font-weight: 300;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+
+    .boot-codename {
+      font-size: 20px;
+      font-weight: 600;
+      color: #6ab4ff;
+      letter-spacing: 1px;
+    }
+
+    .boot-bar-container {
+      width: 240px;
+      height: 14px;
+      border: 1px solid #4c5d70;
+      border-radius: 4px;
+      padding: 2px;
+      background: #0a0f16;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 14px rgba(74, 158, 255, 0.25);
+    }
+
+    .boot-bar-runner {
+      position: absolute;
+      top: 2px;
+      left: -60px;
+      width: 54px;
+      height: 8px;
+      display: flex;
+      gap: 3px;
+      animation: bootRunner 1.6s linear infinite;
+    }
+
+    .boot-bar-runner span {
+      flex: 1;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #8cd0ff 0%, #2d82e6 55%, #174c9c 100%);
+      box-shadow: 0 0 6px #4da3ff;
+    }
+
+    @keyframes bootRunner {
+      0% { left: -60px; }
+      100% { left: 246px; }
+    }
+
+    .boot-status-text {
+      margin-top: 14px;
+      font-size: 11px;
+      color: #7d92ab;
+      font-family: var(--font-mono);
+    }
+
+    .boot-footer {
+      position: absolute;
+      bottom: 24px;
+      width: 90%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #66778a;
+    }
+
+    /* ==========================================================================
+       3. РОБОЧИЙ СТІЛ ТА ШПАЛЕРИ LONGHORN 4074
+       ========================================================================== */
+    #desktop {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+      transition: filter 0.2s ease;
+    }
+
+    /* Класична «Блакитна долина» (Longhorn 4074 Bliss) */
+    #desktop.wp-bliss {
+      background:
+        radial-gradient(ellipse at 72% 18%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 28%),
+        radial-gradient(ellipse at 25% 24%, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0) 34%),
+        linear-gradient(180deg, #1b65c4 0%, #4897ea 38%, #8ec7f8 56%, #66b832 56.5%, #439919 74%, #296e0b 100%);
+    }
+
+    #desktop.wp-bliss::before {
+      content: "";
+      position: absolute;
+      left: -10%;
+      right: -10%;
+      bottom: -8%;
+      height: 52%;
+      background: radial-gradient(ellipse at 32% 20%, #7ad13b 0%, #4ba319 52%, #2b6b0c 100%);
+      border-radius: 55% 45% 0 0 / 35% 28% 0 0;
+      box-shadow: 0 -8px 25px rgba(24, 72, 10, 0.35);
+      pointer-events: none;
+    }
+
+    #desktop.wp-bliss::after {
+      content: "";
+      position: absolute;
+      left: 20%;
+      right: -15%;
+      bottom: -12%;
+      height: 44%;
+      background: radial-gradient(ellipse at 65% 18%, #68c22b 0%, #3d8c12 58%, #215707 100%);
+      border-radius: 60% 40% 0 0 / 40% 30% 0 0;
+      pointer-events: none;
+    }
+
+    /* Темна абстракція Longhorn Aurora / Jade Wave */
+    #desktop.wp-aurora {
+      background:
+        radial-gradient(circle at 75% 25%, rgba(62, 168, 255, 0.42) 0%, transparent 45%),
+        radial-gradient(circle at 20% 80%, rgba(24, 130, 165, 0.45) 0%, transparent 50%),
+        linear-gradient(135deg, #071322 0%, #0e2845 48%, #07192b 100%);
+    }
+
+    #desktop.wp-aurora::before {
+      content: "WINDOWS LONGHORN • BUILD 4074";
+      position: absolute;
+      bottom: 62px;
+      left: 24px;
+      font-size: 13px;
+      letter-spacing: 3px;
+      color: rgba(165, 215, 255, 0.25);
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    /* Імітація гальмування DCE/Avalon при високому витоку пам'яті */
+    body.dce-lag .window {
+      transition: transform 0.16s steps(3, end), opacity 0.2s linear;
+    }
+
+    /* Сітка іконок робочого столу */
+    #desktop-icons {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      bottom: 58px;
+      display: flex;
+      flex-direction: column;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 10px 14px;
+      z-index: 2;
+      transition: opacity 0.25s ease;
+    }
+
+    .desktop-icon {
+      width: 82px;
+      padding: 6px 4px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.65);
+      transition: background 0.12s, border-color 0.12s;
+    }
+
+    .desktop-icon:hover {
+      background: rgba(135, 195, 255, 0.24);
+      border-color: rgba(180, 220, 255, 0.55);
+    }
+
+    .desktop-icon.selected {
+      background: rgba(58, 130, 215, 0.45);
+      border-color: rgba(175, 220, 255, 0.85);
+    }
+
+    .desktop-icon svg {
+      width: 42px;
+      height: 42px;
+      margin-bottom: 4px;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
+    }
+
+    .desktop-icon span {
+      font-size: 11.5px;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    /* Водяний знак збірки в правому нижньому куті (класика бета-версій Windows) */
+    #build-watermark {
+      position: absolute;
+      bottom: 54px;
+      right: calc(var(--sidebar-width) + 14px);
+      text-align: right;
+      color: rgba(255, 255, 255, 0.85);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+      font-size: 11.5px;
+      line-height: 1.35;
+      pointer-events: none;
+      z-index: 2;
+      transition: right 0.25s ease;
+    }
+
+    /* ==========================================================================
+       4. БІЧНА ПАНЕЛЬ (WINDOWS SIDEBAR — LONGHORN 4074)
+       ========================================================================== */
+    body.sidebar-collapsed {
+      --sidebar-current-width: 18px;
+    }
+
+    #sidebar {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 44px;
+      width: 210px;
+      background: var(--sidebar-bg);
+      backdrop-filter: blur(var(--blur-amount));
+      -webkit-backdrop-filter: blur(var(--blur-amount));
+      border-left: 1px solid var(--taskbar-border);
+      box-shadow: -4px 0 18px rgba(0, 0, 0, 0.35);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      gap: 8px;
+      color: #eef5fc;
+      transition: transform 0.25s ease, opacity 0.25s ease, width 0.25s ease;
+      overflow-y: auto;
+    }
+
+    body.sidebar-collapsed #sidebar {
+      transform: translateX(calc(100% - var(--sidebar-current-width)));
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 11px;
+      color: #b7d3ee;
+    }
+
+    .sidebar-toggle-btn {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: #fff;
+      border-radius: 4px;
+      padding: 2px 7px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .sidebar-toggle-btn:hover {
+      background: rgba(115, 185, 255, 0.35);
+    }
+
+    .sb-tile {
+      background: var(--sidebar-tile-bg);
+      border: 1px solid var(--sidebar-tile-border);
+      border-radius: 8px;
+      padding: 8px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .sb-tile-title {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #9ec8f0;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Аналоговий годинник */
+    #clock-canvas {
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Слайд-шоу */
+    .slideshow-box {
+      position: relative;
+      height: 86px;
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: #0d1c2e;
+    }
+
+    .slideshow-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.58);
+      font-size: 10px;
+      padding: 2px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .slideshow-controls button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: #fff;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    /* Пошук WinFS у Sidebar */
+    .sb-search-input {
+      width: 100%;
+      padding: 5px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(170, 215, 255, 0.5);
+      background: rgba(10, 20, 32, 0.65);
+      color: #fff;
+      font-size: 11.5px;
+      outline: none;
+    }
+
+    .sb-search-input::placeholder {
+      color: #8ba8c7;
+    }
+
+    #sb-search-results {
+      margin-top: 5px;
+      max-height: 75px;
+      overflow-y: auto;
+      font-size: 11px;
+    }
+
+    .sb-search-item {
+      padding: 3px 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sb-search-item:hover {
+      background: rgba(100, 175, 255, 0.3);
+    }
+
+    /* Швидкий запуск */
+    .sb-quick-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .sb-quick-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 5px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      color: #fff;
+      font-size: 9.5px;
+    }
+
+    .sb-quick-btn:hover {
+      background: rgba(110, 185, 255, 0.32);
+      border-color: #9cd0ff;
+    }
+
+    /* Віджет моніторингу витоку пам'яті DCE/WinFS */
+    .ram-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 4px 0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .ram-bar-fill {
+      height: 100%;
+      width: 32%;
+      background: linear-gradient(90deg, #4cd964, #ffcc00, #ff3b30);
+      transition: width 0.4s ease;
+    }
+
+    /* ==========================================================================
+       5. ПАНЕЛЬ ЗАВДАНЬ (TASKBAR) ТА МЕНЮ «ПУСК» (START MENU)
+       ========================================================================== */
+    #taskbar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 44px;
+      background: var(--taskbar-bg);
+      backdrop-filter: blur(var(--blur-amount));
+      -webkit-backdrop-filter: blur(var(--blur-amount));
+      border-top: 1px solid var(--taskbar-border);
+      box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.45);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      padding: 0 8px 0 6px;
+      gap: 6px;
+      transition: opacity 0.25s ease;
+    }
+
+    /* Кругла кнопка Start без напису (прототип Vista Orb збірки 4074) */
+    #start-btn {
+      width: 42px;
+      height: 42px;
+      margin-top: -4px;
+      border-radius: 50%;
+      border: 1px solid rgba(190, 230, 255, 0.75);
+      background: radial-gradient(circle at 35% 28%, #7cc4ff 0%, #2468bd 48%, #0e3269 85%, #1c579e 100%);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.65), inset 0 2px 4px rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform 0.12s, filter 0.15s;
+    }
+
+    #start-btn:hover {
+      filter: brightness(1.15);
+      box-shadow: 0 0 14px rgba(105, 190, 255, 0.9), inset 0 2px 5px rgba(255, 255, 255, 0.85);
+    }
+
+    #start-btn:active {
+      transform: scale(0.95);
+    }
+
+    #taskbar-tasks {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      overflow-x: auto;
+      padding: 2px 4px;
+    }
+
+    .task-btn {
+      height: 30px;
+      min-width: 120px;
+      max-width: 175px;
+      padding: 0 10px;
+      border-radius: 5px;
+      border: 1px solid rgba(170, 215, 255, 0.35);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 100%);
+      color: #f0f6fc;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-btn:hover {
+      background: linear-gradient(180deg, rgba(145, 205, 255, 0.32) 0%, rgba(75, 140, 215, 0.22) 100%);
+    }
+
+    .task-btn.active {
+      background: linear-gradient(180deg, rgba(95, 165, 235, 0.55) 0%, rgba(35, 85, 150, 0.65) 100%);
+      border-color: #a6d8ff;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.45);
+      font-weight: 600;
+    }
+
+    /* Системний трей */
+    #system-tray {
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 6px;
+      background: rgba(8, 18, 30, 0.55);
+      border: 1px solid rgba(150, 200, 245, 0.28);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #e6f1fc;
+      font-size: 11.5px;
+      flex-shrink: 0;
+    }
+
+    .tray-badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.12);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tray-badge:hover {
+      background: rgba(110, 180, 255, 0.28);
+    }
+
+    /* Двоколонкове меню «Пуск» Longhorn */
+    #start-menu {
+      position: fixed;
+      left: 6px;
+      bottom: 48px;
+      width: 410px;
+      max-width: calc(100vw - 12px);
+      background: var(--win-frame-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--win-border);
+      border-radius: 10px 10px 6px 6px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+      z-index: 2500;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #start-menu.open {
+      display: flex;
+    }
+
+    .sm-header {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .sm-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      background: linear-gradient(135deg, #4fa4ff, #17498a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    }
+
+    .sm-columns {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      background: #ffffff;
+      min-height: 290px;
+    }
+
+    .sm-left {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid #d4e0ec;
+    }
+
+    .sm-right {
+      padding: 8px;
+      background: #dce8f5;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .sm-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12.5px;
+      color: #162638;
+    }
+
+    .sm-item:hover {
+      background: #2b71c2;
+      color: #ffffff;
+    }
+
+    .sm-item small {
+      display: block;
+      font-size: 10px;
+      opacity: 0.75;
+    }
+
+    .sm-search-box {
+      padding-top: 6px;
+      border-top: 1px solid #e2eaf2;
+    }
+
+    .sm-search-box input {
+      width: 100%;
+      padding: 6px 9px;
+      border: 1px solid #9db8d4;
+      border-radius: 5px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .sm-footer {
+      padding: 8px 14px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .sm-power-btn {
+      padding: 5px 12px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sm-power-btn:hover {
+      background: rgba(235, 80, 65, 0.75);
+    }
+
+    /* ==========================================================================
+       6. ВІКНА AERO / DCE (DESKTOP COMPOSITING ENGINE)
+       ========================================================================== */
+    .window {
+      position: absolute;
+      background: var(--win-frame-bg);
+      backdrop-filter: blur(var(--blur-amount));
+      -webkit-backdrop-filter: blur(var(--blur-amount));
+      border: 1px solid var(--win-border);
+      border-radius: 9px 9px 6px 6px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      display: flex;
+      flex-direction: column;
+      padding: 0 5px 5px 5px;
+      min-width: 280px;
+      min-height: 180px;
+    }
+
+    .window.inactive {
+      background: var(--win-frame-inactive);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+    }
+
+    .window.maximized {
+      top: 0 !important;
+      left: 0 !important;
+      width: calc(100vw - var(--sidebar-current-width)) !important;
+      height: calc(100vh - 44px) !important;
+      border-radius: 0;
+    }
+
+    .win-titlebar {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px 0 6px;
+      cursor: move;
+      flex-shrink: 0;
+    }
+
+    .win-title-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      overflow: hidden;
+    }
+
+    .win-title-text {
+      color: var(--win-title-color);
+      text-shadow: var(--win-title-shadow);
+      font-size: 12.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Характерні великі кнопки керування вікном Longhorn 4074 */
+    .win-controls {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .win-btn {
+      width: 28px;
+      height: 21px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: var(--win-btn-ctrl);
+      color: #fff;
+      font-weight: bold;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    }
+
+    .win-btn:hover {
+      filter: brightness(1.22);
+    }
+
+    .win-btn.close {
+      width: 36px;
+      background: var(--win-btn-close);
+    }
+
+    .win-content {
+      flex: 1;
+      background: var(--win-body-bg);
+      border: 1px solid rgba(40, 65, 95, 0.45);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Маркер зміни розміру вікна */
+    .win-resizer {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 14px;
+      height: 14px;
+      cursor: nwse-resize;
+      z-index: 10;
+    }
+
+    /* ==========================================================================
+       7. СТИЛІ ВНУТРІШНІХ ПРОГРАМ (EXPLORER, IE 6.05, CMD, WMP, TASKMGR)
+       ========================================================================== */
+    /* Панель інструментів та хлібні крихти Explorer */
+    .exp-toolbar {
+      background: var(--win-header-bar);
+      border-bottom: 1px solid #b4c7db;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .exp-nav-btn {
+      padding: 4px 9px;
+      border-radius: 4px;
+      border: 1px solid #8ea8c4;
+      background: linear-gradient(180deg, #ffffff 0%, #dce7f3 100%);
+      cursor: pointer;
+      font-size: 12px;
+      color: #1c324a;
+    }
+
+    .exp-nav-btn:hover {
+      background: #e9f2fc;
+    }
+
+    .exp-breadcrumbs {
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid #8ea8c4;
+      border-radius: 4px;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      overflow-x: auto;
+    }
+
+    .crumb-item {
+      padding: 1px 6px;
+      border-radius: 3px;
+      cursor: pointer;
+      color: #194b82;
+      font-weight: 500;
+    }
+
+    .crumb-item:hover {
+      background: #dcebf9;
+    }
+
+    .exp-main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Ліва панель WinFS Preview / Details Pane */
+    .exp-sidebar {
+      width: 195px;
+      background: linear-gradient(180deg, #d8e6f5 0%, #b9d1eb 100%);
+      border-right: 1px solid #a6bed6;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .winfs-card {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid #9ab5d1;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 11.5px;
+    }
+
+    .winfs-card h4 {
+      margin: 0 0 6px 0;
+      font-size: 11.5px;
+      color: #1a497a;
+      border-bottom: 1px solid #c6d8eb;
+      padding-bottom: 3px;
+    }
+
+    .winfs-stack-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #153961;
+    }
+
+    .winfs-stack-link:hover {
+      background: #c8dff5;
+    }
+
+    .exp-grid {
+      flex: 1;
+      padding: 14px;
+      background: #ffffff;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+      align-content: start;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .exp-file-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    .exp-file-item:hover {
+      background: #ebf4fc;
+      border-color: #b4d4f2;
+    }
+
+    .exp-file-item.selected {
+      background: #d2e7fa;
+      border-color: #6ca6de;
+    }
+
+    /* Командний рядок CMD */
+    .cmd-terminal {
+      flex: 1;
+      background: #000000;
+      color: #cccccc;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cmd-output {
+      white-space: pre-wrap;
+      line-height: 1.35;
+    }
+
+    .cmd-input-line {
+      display: flex;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .cmd-input-line input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+      margin-left: 6px;
+    }
+
+    /* Блокнот Notepad */
+    .notepad-menubar {
+      background: #eef3f8;
+      border-bottom: 1px solid #cbd6e2;
+      padding: 3px 8px;
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+    }
+
+    .notepad-menubar button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .notepad-menubar button:hover {
+      background: #d0e1f2;
+    }
+
+    .notepad-area {
+      flex: 1;
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.45;
+      background: #ffffff;
+      color: #111;
+    }
+
+    /* Internet Explorer 6.05 */
+    .ie-bar {
+      background: var(--win-header-bar);
+      border-bottom: 1px solid #aebfd1;
+      padding: 5px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ie-url-input {
+      flex: 1;
+      padding: 4px 8px;
+      border: 1px solid #8aa4bf;
+      border-radius: 3px;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    .ie-viewport {
+      flex: 1;
+      overflow-y: auto;
+      background: #fff;
+      padding: 0;
+    }
+
+    /* Windows Media Player 9/10 Longhorn Edition */
+    .wmp-skin {
+      flex: 1;
+      background: linear-gradient(180deg, #1b2d44 0%, #0d1724 55%, #1d3554 100%);
+      color: #e4f0fc;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px;
+    }
+
+    .wmp-visualizer {
+      flex: 1;
+      background: #050a10;
+      border: 1px solid #3c628c;
+      border-radius: 8px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 4px;
+      padding: 14px;
+      min-height: 110px;
+      position: relative;
+    }
+
+    .wmp-bar {
+      width: 10px;
+      background: linear-gradient(180deg, #6be4ff 0%, #1d7ae0 60%, #0d3a7a 100%);
+      border-radius: 2px 2px 0 0;
+      height: 12%;
+      transition: height 0.12s ease;
+    }
+
+    .wmp-controls {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .wmp-btn {
+      padding: 6px 14px;
+      border-radius: 16px;
+      border: 1px solid #78b4f0;
+      background: linear-gradient(180deg, #4b8cd6 0%, #1d4e8a 100%);
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .wmp-btn:hover {
+      filter: brightness(1.18);
+    }
+
+    /* ==========================================================================
+       8. LONGHORN AGENT (ВБУДОВАНИЙ ШІ-ПОМІЧНИК ІСТОРИК)
+       ========================================================================== */
+    #longhorn-agent {
+      position: fixed;
+      bottom: 54px;
+      right: calc(var(--sidebar-width) + 12px);
+      width: 330px;
+      max-width: calc(100vw - 24px);
+      background: linear-gradient(180deg, rgba(19, 34, 54, 0.94) 0%, rgba(11, 20, 33, 0.97) 100%);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(115, 190, 255, 0.55);
+      border-radius: 10px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
+      color: #eaf4ff;
+      z-index: 1900;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: right 0.25s ease, transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    #longhorn-agent.minimized {
+      display: none;
+    }
+
+    .agent-header {
+      background: linear-gradient(90deg, #1b4f8c 0%, #2a75c7 100%);
+      padding: 7px 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .agent-badge {
+      background: rgba(255, 255, 255, 0.22);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      margin-left: 6px;
+    }
+
+    .agent-body {
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      max-height: 190px;
+      overflow-y: auto;
+      color: #d8e8f8;
+    }
+
+    .agent-body strong {
+      color: #7cc4ff;
+    }
+
+    .agent-topics {
+      padding: 7px 10px;
+      background: rgba(0, 0, 0, 0.28);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .agent-chip {
+      background: rgba(88, 162, 240, 0.2);
+      border: 1px solid rgba(125, 195, 255, 0.4);
+      color: #bce0ff;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 10.5px;
+      cursor: pointer;
+    }
+
+    .agent-chip:hover {
+      background: rgba(88, 162, 240, 0.42);
+      color: #fff;
+    }
+
+    /* ==========================================================================
+       9. СИСТЕМНІ ДІАЛОГИ ПОМИЛОК, BALLOON СПОВІЩЕННЯ ТА BSOD
+       ========================================================================== */
+    #modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 5000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #modal-overlay.open {
+      display: flex;
+    }
+
+    .sys-dialog {
+      width: 390px;
+      max-width: 92vw;
+      background: #f0f4f8;
+      border: 2px solid #2b578a;
+      border-radius: 8px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
+      overflow: hidden;
+    }
+
+    .sys-dialog-title {
+      background: linear-gradient(180deg, #3c73b5 0%, #234d82 100%);
+      color: #fff;
+      padding: 7px 12px;
+      font-weight: 600;
+      font-size: 12.5px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sys-dialog-body {
+      padding: 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1a2430;
+    }
+
+    .sys-dialog-footer {
+      padding: 8px 14px;
+      background: #e1e8f0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .sys-btn {
+      padding: 5px 16px;
+      border-radius: 4px;
+      border: 1px solid #7d98b5;
+      background: linear-gradient(180deg, #ffffff 0%, #d8e3ef 100%);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .sys-btn:hover {
+      background: #e8f1fa;
+    }
+
+    /* Спливаюче сповіщення трею (Balloon Tip) */
+    #tray-balloon {
+      position: fixed;
+      bottom: 52px;
+      right: 16px;
+      width: 280px;
+      background: #ffffe1;
+      border: 1px solid #4a4a4a;
+      border-radius: 6px;
+      padding: 10px 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      font-size: 12px;
+      color: #111;
+      z-index: 3000;
+      display: none;
+    }
+
+    /* BSOD (Синій екран смерті Longhorn 4074) */
+    #bsod-screen {
+      position: fixed;
+      inset: 0;
+      background: #0000aa;
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      line-height: 1.45;
+      padding: 42px;
+      z-index: 999999;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    #bsod-screen.active {
+      display: flex;
+    }
+
+    .bsod-reboot-btn {
+      align-self: flex-start;
+      background: #ffffff;
+      color: #0000aa;
+      border: none;
+      padding: 8px 18px;
+      font-family: var(--font-mono);
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      :root {
+        --sidebar-current-width: 175px;
+      }
+      body.sidebar-collapsed {
+        --sidebar-current-width: 18px;
+      }
+      #sidebar {
+        width: 175px;
+      }
+      #longhorn-agent {
+        width: 270px;
+        right: 14px;
+        bottom: 52px;
+      }
+      .exp-sidebar {
+        width: 140px;
+      }
+    }
+  </style>
+</head>
+<body class="theme-jade">
+
+  <!-- ========================================================================
+       ЕКРАН ЗАВАНТАЖЕННЯ (BOOT SCREEN — BUILD 4074)
+       ======================================================================== -->
+  <div id="boot-screen">
+    <div class="boot-logo-wrap">
+      <!-- Автентичний логотип прапора Windows Longhorn -->
+      <svg width="88" height="76" viewBox="0 0 88 76">
+        <defs>
+          <linearGradient id="g-red" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ff6b4a"/>
+            <stop offset="100%" stop-color="#c9240e"/>
+          </linearGradient>
+          <linearGradient id="g-green" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#8ce043"/>
+            <stop offset="100%" stop-color="#3b8c14"/>
+          </linearGradient>
+          <linearGradient id="g-blue" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#5cb8ff"/>
+            <stop offset="100%" stop-color="#1759b8"/>
+          </linearGradient>
+          <linearGradient id="g-yellow" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ffe159"/>
+            <stop offset="100%" stop-color="#d48c08"/>
+          </linearGradient>
+        </defs>
+        <path d="M12 16 Q28 8 42 15 L38 35 Q24 29 8 36 Z" fill="url(#g-red)"/>
+        <path d="M46 16 Q62 23 78 16 L74 36 Q58 43 42 36 Z" fill="url(#g-green)"/>
+        <path d="M7 40 Q23 33 37 40 L33 60 Q19 53 3 60 Z" fill="url(#g-blue)"/>
+        <path d="M41 41 Q57 48 73 41 L69 61 Q53 68 37 61 Z" fill="url(#g-yellow)"/>
+      </svg>
+      <div class="boot-title-row">
+        <span class="boot-ms">Microsoft</span>
+        <span class="boot-win">Windows</span>
+        <span class="boot-codename">Longhorn</span>
+      </div>
+      <div class="boot-status-text" id="boot-stage-text">Initializing WinFS Storage Engine &amp; DCE Compositor...</div>
+    </div>
+
+    <div class="boot-bar-container">
+      <div class="boot-bar-runner">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <div class="boot-footer">
+      <span>Copyright © 1985-2004 Microsoft Corporation</span>
+      <span>Build 4074.idx02.040425-1535</span>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       ОСНОВНИЙ РОБОЧИЙ СТІЛ WINDOWS LONGHORN
+       ======================================================================== -->
+  <div id="desktop" class="wp-bliss">
+    <!-- Іконки робочого столу -->
+    <div id="desktop-icons"></div>
+
+    <!-- Водяний знак версії у куті -->
+    <div id="build-watermark">
+      Windows Longhorn Professional<br />
+      Evaluation Copy. Build 4074.idx02.040425-1535
+    </div>
+
+    <!-- ======================================================================
+         БІЧНА ПАНЕЛЬ (WINDOWS SIDEBAR)
+         ====================================================================== -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <span>Windows Sidebar</span>
+        <button class="sidebar-toggle-btn" id="btn-toggle-sidebar" title="Згорнути/розгорнути панель">❯</button>
+      </div>
+
+      <!-- Таймер 1: Аналоговий годинник -->
+      <div class="sb-tile">
+        <div class="sb-tile-title"><span>Годинник</span><span id="sb-date-label">25.04.2004</span></div>
+        <canvas id="clock-canvas" width="112" height="112"></canvas>
+      </div>
+
+      <!-- Таймер 2: Слайд-шоу зображень -->
+      <div class="sb-tile">
+        <div class="sb-tile-title"><span>Слайд-шоу</span><span>Phodeo</span></div>
+        <div class="slideshow-box" id="sb-slideshow-view">
+          <div class="slideshow-caption">
+            <span id="ss-title">Bliss 4074</span>
+            <div class="slideshow-controls">
+              <button id="ss-prev">◀</button>
+              <button id="ss-next">▶</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Таймер 3: Пошук по віртуальній БД WinFS -->
+      <div class="sb-tile">
+        <div class="sb-tile-title"><span>Пошук WinFS</span><span>SQL</span></div>
+        <input type="text" class="sb-search-input" id="sb-search-box" placeholder="Знайти файл..." />
+        <div id="sb-search-results"></div>
+      </div>
+
+      <!-- Таймер 4: Швидкий запуск програм -->
+      <div class="sb-tile">
+        <div class="sb-tile-title"><span>Швидкий запуск</span></div>
+        <div class="sb-quick-grid" id="sb-quick-launch"></div>
+      </div>
+
+      <!-- Таймер 5: Індикатор витоку пам'яті DCE/Avalon -->
+      <div class="sb-tile">
+        <div class="sb-tile-title"><span>DCE / RAM</span><span id="sb-ram-text">312 / 1536 MB</span></div>
+        <div class="ram-bar-bg">
+          <div class="ram-bar-fill" id="sb-ram-bar"></div>
+        </div>
+        <div style="font-size: 10px; color: #b9d4ee; display: flex; justify-content: space-between;">
+          <span>Avalon Leak: +1.4 MB/s</span>
+          <a href="#" id="sb-gc-link" style="color: #7cc4ff; text-decoration: none;">Очистити</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Контейнер для всіх відкритих вікон -->
+    <div id="windows-layer"></div>
+
+    <!-- ======================================================================
+         ВБУДОВАНИЙ ШІ-ПОМІЧНИК РОЗРОБНИКА (LONGHORN AGENT)
+         ====================================================================== -->
+    <div id="longhorn-agent">
+      <div class="agent-header">
+        <div>🤖 Longhorn Agent <span class="agent-badge">Build 4074 Historian</span></div>
+        <button class="sidebar-toggle-btn" id="agent-hide-btn" title="Приховати помічника">✕</button>
+      </div>
+      <div class="agent-body" id="agent-content">
+        Вітаю у <strong>Windows Longhorn Build 4074</strong> (скомпільовано 25 квітня 2004 р., представлено на WinHEC 2004).<br><br>
+        Ви зараз бачите тему <strong>Jade</strong> та експериментальну <strong>Windows Sidebar</strong>. Спробуйте відкрити <em>Провідник (WinFS)</em>, <em>Панель керування</em>, змінити тему на <em>Aero</em> у Властивостях екрана або поспостерігати за витоком пам'яті у Sidebar!
+      </div>
+      <div class="agent-topics">
+        <button class="agent-chip" data-topic="winfs">Що таке WinFS?</button>
+        <button class="agent-chip" data-topic="pillars">3 стовпи Longhorn</button>
+        <button class="agent-chip" data-topic="leak">Чому гальмує 4074?</button>
+        <button class="agent-chip" data-topic="reset">Велике скидання 2004</button>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         МЕНЮ «ПУСК» (START MENU)
+         ====================================================================== -->
+    <div id="start-menu">
+      <div class="sm-header">
+        <div class="sm-avatar">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-weight: 600; font-size: 14px;">Longhorn Beta Tester</div>
+          <div style="font-size: 11px; opacity: 0.85;">WinHEC 2004 Lab • Administrator</div>
+        </div>
+      </div>
+
+      <div class="sm-columns">
+        <div class="sm-left">
+          <div id="sm-programs-list"></div>
+          <div class="sm-search-box">
+            <input type="text" id="sm-search-input" placeholder="Пошук програм та файлів..." />
+          </div>
+        </div>
+        <div class="sm-right" id="sm-places-list"></div>
+      </div>
+
+      <div class="sm-footer">
+        <button class="sm-power-btn" id="btn-logoff">🔑 Log Off</button>
+        <button class="sm-power-btn" id="btn-shutdown">⏻ Turn Off Computer</button>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         ПАНЕЛЬ ЗАВДАНЬ (TASKBAR)
+         ====================================================================== -->
+    <footer id="taskbar">
+      <button id="start-btn" title="Натисніть, щоб відкрити меню «Пуск»">
+        <svg width="22" height="20" viewBox="0 0 88 76">
+          <path d="M12 16 Q28 8 42 15 L38 35 Q24 29 8 36 Z" fill="#ff5e3a"/>
+          <path d="M46 16 Q62 23 78 16 L74 36 Q58 43 42 36 Z" fill="#7ed936"/>
+          <path d="M7 40 Q23 33 37 40 L33 60 Q19 53 3 60 Z" fill="#4db2ff"/>
+          <path d="M41 41 Q57 48 73 41 L69 61 Q53 68 37 61 Z" fill="#ffd633"/>
+        </svg>
+      </button>
+
+      <div id="taskbar-tasks"></div>
+
+      <div id="system-tray">
+        <div class="tray-badge" id="tray-agent-toggle" title="Відкрити/сховати ШІ-історика Longhorn Agent">
+          🤖 <span>Agent</span>
+        </div>
+        <div class="tray-badge" id="tray-ram-badge" title="Завантаження пам'яті: 312 / 1536 MB (Натисніть для Task Manager)">
+          📊 <span id="tray-ram-val">312 / 1536 MB</span>
+        </div>
+        <div class="tray-badge" title="Підключення до локальної мережі 100 Мбіт/с">
+          🌐
+        </div>
+        <div id="tray-clock" style="font-weight: 600; min-width: 42px; text-align: center;">12:00</div>
+      </div>
+    </footer>
+
+    <!-- Спливаюче повідомлення трею -->
+    <div id="tray-balloon"></div>
+  </div>
+
+  <!-- Модальне вікно системних повідомлень / помилок -->
+  <div id="modal-overlay">
+    <div class="sys-dialog">
+      <div class="sys-dialog-title">
+        <span id="modal-title">Windows Longhorn</span>
+        <span style="cursor: pointer;" id="modal-x">✕</span>
+      </div>
+      <div class="sys-dialog-body">
+        <div id="modal-icon" style="font-size: 28px; flex-shrink: 0;">⚠️</div>
+        <div id="modal-text"></div>
+      </div>
+      <div class="sys-dialog-footer">
+        <button class="sys-btn" id="modal-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       СИНІЙ ЕКРАН СМЕРТІ (BSOD — BUILD 4074)
+       ======================================================================== -->
+  <div id="bsod-screen">
+    <div>
+      <p>A problem has been detected and Windows has been shut down to prevent damage to your computer.</p>
+      <p id="bsod-fault-name">PAGE_FAULT_IN_NONPAGED_AREA</p>
+      <p>If this is the first time you've seen this Stop error screen, restart your computer. If this screen appears again, follow these steps:</p>
+      <p>Check to make sure any new hardware or software is properly installed. Disable Avalon/DCE hardware acceleration or WinFS background indexing service in Safe Mode.</p>
+      <p>Technical information:</p>
+      <p id="bsod-stop-code">*** STOP: 0x00000050 (0xE14A8000, 0x00000000, 0xBF8912A4, 0x00000000)</p>
+      <p id="bsod-driver-info">*** WINFS.SYS - Address BF8912A4 base at BF800000, DateStamp 408b9d12</p>
+      <p style="margin-top: 24px; color: #ffff88;">Beginning dump of physical memory... Physical memory dump complete.</p>
+      <button class="bsod-reboot-btn" id="bsod-reboot-btn">Перезавантажити систему (Restart Build 4074)</button>
+    </div>
+    <div style="font-size: 12px; opacity: 0.8;">Windows Longhorn Kernel Debugger • Build 4074.idx02.040425-1535</div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. ЗВУКОВИЙ РУШІЙ (WEB AUDIO API — БЕЗ ЗОВНІШНІХ ФАЙЛІВ)
+       ========================================================================== */
+    const SoundEngine = (() => {
+      let ctx = null;
+      function getCtx() {
+        if (!ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) ctx = new AudioCtx();
+        }
+        if (ctx && ctx.state === 'suspended') ctx.resume();
+        return ctx;
+      }
+
+      function playChord(freqs, duration = 0.9, type = 'sine', vol = 0.08) {
+        try {
+          const c = getCtx();
+          if (!c) return;
+          const now = c.currentTime;
+          freqs.forEach((f, idx) => {
+            const osc = c.createOscillator();
+            const gain = c.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(f, now + idx * 0.07);
+            gain.gain.setValueAtTime(0.001, now + idx * 0.07);
+            gain.gain.exponentialRampToValueAtTime(vol, now + idx * 0.07 + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            osc.connect(gain);
+            gain.connect(c.destination);
+            osc.start(now + idx * 0.07);
+            osc.stop(now + duration + 0.05);
+          });
+        } catch (e) {}
+      }
+
+      return {
+        startup: () => playChord([261.63, 329.63, 392.00, 523.25, 659.25], 1.6, 'triangle', 0.07),
+        error: () => playChord([220, 185], 0.35, 'sawtooth', 0.09),
+        notify: () => playChord([587.33, 880], 0.3, 'sine', 0.06),
+        click: () => playChord([720], 0.06, 'sine', 0.03),
+        playNote: (freq) => playChord([freq], 0.25, 'triangle', 0.06)
+      };
+    })();
+
+    /* ==========================================================================
+       2. ВІРТУАЛЬНА ФАЙЛОВА СИСТЕМА WINFS (З ПІДТРИМКОЮ LOCALSTORAGE)
+       ========================================================================== */
+    const STORAGE_KEY = 'longhorn_4074_winfs_v1';
+
+    const defaultFiles = [
+      {
+        id: 'f-readme',
+        name: 'ReadMe_4074.txt',
+        folder: 'Desktop',
+        type: 'document',
+        ext: 'txt',
+        author: 'Microsoft Longhorn Team',
+        tags: 'WinHEC 2004, Release Notes, 4074',
+        size: '4 KB',
+        content:
+`MICROSOFT WINDOWS LONGHORN (BUILD 4074.idx02.040425-1535)
+Release Notes — WinHEC 2004 Preview Edition
+==========================================================
+
+Дякуємо за тестування попередньої збірки Windows Longhorn!
+
+НОВЕ У ЦІЙ ЗБІРЦІ:
+1. Тема оформлення "Jade" (замінює ранню синю тему "Plex").
+2. Бічна панель Windows Sidebar із тайлами (Годинник, Слайд-шоу, Пошук).
+3. Попередня інтеграція WinFS (Windows Future Storage) — групування файлів за метаданими (Stacks).
+4. Експериментальний Desktop Compositing Engine (DCE / Avalon).
+
+ВІДОМІ ПРОБЛЕМИ (KNOWN ISSUES):
+- Витік пам'яті у процесах explorer.exe та dce.exe при тривалій роботі.
+- Деякі аплети Control Panel ще не перенесені на .NET/Avalon.
+- Відкриття системного каталогу C:\\WINDOWS\\WinSxS може спричинити перезапуск оболонки.
+- Відтворення онлайн-потоків у Windows Media Player може бути нестабільним.`
+      },
+      {
+        id: 'f-winfs-spec',
+        name: 'WinFS_Architecture.txt',
+        folder: 'My Documents',
+        type: 'document',
+        ext: 'txt',
+        author: 'Quentin Clark',
+        tags: 'WinFS, SQL Server, Metadata, Storage',
+        size: '6 KB',
+        content:
+`АРХІТЕКТУРА WINFS (WINDOWS FUTURE STORAGE)
+-------------------------------------------
+WinFS — це реляційна файлова підсистема поверх NTFS, побудована на рушії SQL Server 2005 (Yukon).
+
+Замість жорсткої ієрархії папок WinFS зберігає елементи (Items) зі схемами:
+- Contacts (Контакти)
+- Documents (Документи)
+- Media / Pictures (Медіафайли)
+
+У Провіднику це реалізовано через віртуальні папки (Stacks):
+"All Documents", "All Pictures", "All Music".`
+      },
+      {
+        id: 'f-notes',
+        name: 'My_Test_Notes.txt',
+        folder: 'My Documents',
+        type: 'document',
+        ext: 'txt',
+        author: 'Beta Tester',
+        tags: 'Нотатки, Баги, 2004',
+        size: '2 KB',
+        content:
+`Нотатки тестувальника (Травень 2004):
+- Встановив збірку 4074 на тестовий стенд Pentium 4 2.8 GHz, 512 MB RAM.
+- Інтерфейс Jade виглядає футуристично, але через 10 хвилин споживання RAM зростає до 900 MB!
+- Команда "crash" у CMD миттєво викликає синій екран WINFS.SYS.`
+      },
+      {
+        id: 'f-pic-bliss',
+        name: 'Longhorn_Bliss_4074.jpg',
+        folder: 'My Pictures',
+        type: 'picture',
+        ext: 'jpg',
+        author: 'Microsoft Design Studio',
+        tags: 'Wallpaper, Bliss, Green Hills',
+        size: '840 KB',
+        artId: 'bliss'
+      },
+      {
+        id: 'f-pic-jade',
+        name: 'Jade_Aurora_Concept.png',
+        folder: 'My Pictures',
+        type: 'picture',
+        ext: 'png',
+        author: 'Aero UX Team',
+        tags: 'Jade, Concept, DCE, Glass',
+        size: '620 KB',
+        artId: 'jade'
+      },
+      {
+        id: 'f-pic-pdc',
+        name: 'PDC_2003_Avalon_Demo.jpg',
+        folder: 'My Pictures',
+        type: 'picture',
+        ext: 'jpg',
+        author: 'Hillel Cooperman',
+        tags: 'PDC 2003, Avalon, Sidebar',
+        size: '510 KB',
+        artId: 'pdc'
+      },
+      {
+        id: 'f-music-1',
+        name: 'Longhorn_Welcome_Ambient.wma',
+        folder: 'My Music',
+        type: 'music',
+        ext: 'wma',
+        author: 'Microsoft Sound Lab',
+        tags: 'Ambient, Synth, 2004',
+        size: '3.4 MB',
+        melody: [261.63, 329.63, 392.00, 493.88, 523.25, 392.00, 329.63, 293.66]
+      },
+      {
+        id: 'f-music-2',
+        name: 'Avalon_Dreams_Theme.mp3',
+        folder: 'My Music',
+        type: 'music',
+        ext: 'mp3',
+        author: 'WinHEC Demo Track',
+        tags: 'Electronic, Chill, Beta',
+        size: '4.1 MB',
+        melody: [220.00, 261.63, 329.63, 440.00, 392.00, 329.63, 293.66, 246.94]
+      },
+      {
+        id: 'f-sys-1',
+        name: 'ntoskrnl.exe',
+        folder: 'C:\\WINDOWS\\System32',
+        type: 'system',
+        ext: 'exe',
+        author: 'Microsoft Corporation',
+        tags: 'Kernel, 6.0.4074.0',
+        size: '2.1 MB',
+        content: 'Binary executable file: Windows NT Kernel Version 6.0.4074.idx02'
+      },
+      {
+        id: 'f-sys-2',
+        name: 'winfs.sys',
+        folder: 'C:\\WINDOWS\\System32',
+        type: 'system',
+        ext: 'sys',
+        author: 'Microsoft WinFS Team',
+        tags: 'Driver, Storage',
+        size: '614 KB',
+        content: 'Kernel mode driver for Windows Future Storage.'
+      }
+    ];
+
+    function loadWinFS() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+      return JSON.parse(JSON.stringify(defaultFiles));
+    }
+
+    let winfsFiles = loadWinFS();
+
+    function saveWinFS() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(winfsFiles));
+      } catch (e) {}
+      updateSidebarSearch();
+    }
+
+    /* ==========================================================================
+       3. SVG-ІКОНКИ В СТИЛІ WINDOWS LONGHORN 4074
+       ========================================================================== */
+    const Icons = {
+      computer: `<svg viewBox="0 0 48 48"><rect x="6" y="7" width="36" height="26" rx="3" fill="#2d6bb3" stroke="#d8ecff" stroke-width="2"/><rect x="10" y="11" width="28" height="18" fill="#68b5ff"/><path d="M18 33h12l3 6H15z" fill="#b8cce0"/><rect x="12" y="39" width="24" height="3" rx="1.5" fill="#7c96b2"/></svg>`,
+      folder: `<svg viewBox="0 0 48 48"><path d="M6 12c0-2 1.5-3 3.5-3h11l4 4h15c2 0 3.5 1.5 3.5 3.5v20c0 2-1.5 3.5-3.5 3.5h-30C7.5 40 6 38.5 6 36.5V12z" fill="#e8b838"/><path d="M9 17h33l-3 22H6l3-22z" fill="#ffd966" stroke="#c99318" stroke-width="1"/></svg>`,
+      stack: `<svg viewBox="0 0 48 48"><rect x="10" y="8" width="28" height="22" rx="3" fill="#4994e8" opacity="0.55"/><rect x="7" y="13" width="32" height="23" rx="3" fill="#2f79cf" opacity="0.8"/><rect x="4" y="18" width="36" height="23" rx="3" fill="#64b5ff" stroke="#ffffff" stroke-width="1.5"/></svg>`,
+      doc: `<svg viewBox="0 0 48 48"><path d="M10 6h20l10 10v26H10V6z" fill="#ffffff" stroke="#5d87b5" stroke-width="2"/><path d="M30 6v10h10" fill="#c7def5"/><line x1="15" y1="22" x2="33" y2="22" stroke="#4a82bd" stroke-width="2"/><line x1="15" y1="28" x2="33" y2="28" stroke="#4a82bd" stroke-width="2"/><line x1="15" y1="34" x2="26" y2="34" stroke="#4a82bd" stroke-width="2"/></svg>`,
+      picture: `<svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="32" rx="3" fill="#fff" stroke="#4e82b8" stroke-width="2"/><rect x="10" y="12" width="28" height="22" fill="#5bb2ff"/><circle cx="17" cy="18" r="3.5" fill="#ffe666"/><path d="M10 34l8-10 6 7 5-5 9 8H10z" fill="#49a828"/></svg>`,
+      music: `<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="#1e5ca8" stroke="#9cd0ff" stroke-width="2"/><path d="M21 31V16l12-3v15" fill="none" stroke="#fff" stroke-width="2.5"/><circle cx="18" cy="31" r="4" fill="#7ce0ff"/><circle cx="30" cy="28" r="4" fill="#7ce0ff"/></svg>`,
+      ie: `<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="#2582e0"/><ellipse cx="24" cy="24" rx="21" ry="8" transform="rotate(-24 24 24)" fill="none" stroke="#ffd24c" stroke-width="3"/><text x="16" y="32" fill="#fff" font-size="25" font-weight="bold" font-family="Georgia">e</text></svg>`,
+      cmd: `<svg viewBox="0 0 48 48"><rect x="6" y="9" width="36" height="30" rx="3" fill="#14181f" stroke="#7c98b5" stroke-width="2"/><rect x="6" y="9" width="36" height="7" fill="#2b64a8"/><text x="11" y="29" fill="#e6edf5" font-size="13" font-family="monospace" font-weight="bold">C:\&gt;_</text></svg>`,
+      cp: `<svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="32" rx="4" fill="#3a75b8" stroke="#cce4ff" stroke-width="2"/><circle cx="18" cy="20" r="4" fill="#ffd452"/><rect x="25" y="17" width="12" height="5" rx="2" fill="#fff"/><circle cx="30" cy="30" r="4" fill="#7ce063"/><rect x="11" y="28" width="13" height="5" rx="2" fill="#fff"/></svg>`,
+      wmp: `<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="#194d94" stroke="#85c7ff" stroke-width="2.5"/><polygon points="20,16 34,24 20,32" fill="#ff9d2e"/></svg>`,
+      taskmgr: `<svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="32" rx="3" fill="#0c1f14" stroke="#6894b8" stroke-width="2"/><polyline points="9,28 16,28 20,16 25,34 30,22 39,22" fill="none" stroke="#39ff6a" stroke-width="2.5"/></svg>`,
+      recycle: `<svg viewBox="0 0 48 48"><path d="M14 14h20l-2 26H16L14 14z" fill="#b8d4f0" stroke="#4c78a8" stroke-width="2"/><rect x="11" y="10" width="26" height="4" rx="2" fill="#6b9ac9"/><path d="M20 22l4-4 4 4M24 18v14" stroke="#2c7a3f" stroke-width="2.2" fill="none"/></svg>`,
+      sys: `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#526a85" stroke="#c4d6e8" stroke-width="2"/><circle cx="24" cy="24" r="7" fill="none" stroke="#fff" stroke-width="3"/></svg>`
+    };
+
+    /* ==========================================================================
+       4. LONGHORN AGENT (ВБУДОВАНИЙ ШІ-ПОМІЧНИК ІСТОРИК)
+       ========================================================================== */
+    const HistorianKB = {
+      boot: `<strong>Ласкаво просимо до Build 4074!</strong><br>Ця збірка була роздана учасникам конференції <em>WinHEC 2004</em> у травні 2004 року. Саме тут уперше з'явилася сіро-блакитна тема <strong>Jade</strong>, яка замінила ранню синю тему <em>Plex</em>.`,
+      winfs: `<strong>WinFS (Windows Future Storage)</strong><br>Амбітна спроба Microsoft замінити звичайні папки реляційною базою даних поверх NTFS (на базі SQL Server Yukon). Віртуальні папки (<em>Stacks</em>) групували документи, фото й музику за метаданими. Проєкт скасували для Vista через низьку продуктивність та високе навантаження на пам'ять.`,
+      pillars: `<strong>Три стовпи (Three Pillars) Longhorn:</strong><br>1. <strong>Avalon</strong> (пізніше WPF) — векторний графічний рушій.<br>2. <strong>Indigo</strong> (пізніше WCF) — сервіс-орієнтована комунікація.<br>3. <strong>WinFS</strong> — об'єктно-реляційна файлова система.<br>У 4074 усе це працювало поверх керованого коду .NET, що перевантажувало ПК 2004 року.`,
+      leak: `<strong>Чому гальмує збірка 4074?</strong><br>У 2004 році оболонка <code>explorer.exe</code> та рушій <code>DCE (Desktop Compositing Engine)</code> містили серйозні витоки пам'яті (Memory Leaks). Вже через 15–20 хвилин роботи система «з'їдала» понад 1 ГБ ОЗП і починала втрачати кадри анімації.`,
+      reset: `<strong>Велике скидання (The Big Reset — серпень 2004):</strong><br>Через хаос у кодовій базі та неможливість стабілізувати 4074/4083, Джим Оллчін переконав Білла Гейтса «скинути» розробку. За основу взяли стабільний код <em>Windows Server 2003 SP1</em>, вирізали WinFS і почали створювати <strong>Windows Vista</strong>.`,
+      theme_jade: `<strong>Тема Jade (Build 4074):</strong><br>Створена дизайнерами Hillel Cooperman та Jenny Lam як перехідний крок до скла Aero. Поєднувала стримані сріблясто-сині тони та напівпрозорі заголовки вікон.`,
+      theme_plex: `<strong>Тема Plex (Збірки 4008–4051):</strong><br>Яскраво-синій інтерфейс, який використовувався на демонстрації PDC 2003. У збірці 4074 вона залишилася в ресурсах системи як спадщина попередніх етапів розробки.`,
+      theme_aero: `<strong>Ранній Aero / DCE (Desktop Compositing Engine):</strong><br>Попередник DWM у Windows Vista. Використовував апаратне прискорення Direct3D для малювання скляних рамок вікон, але у 4074 часто викликав падіння відеодрайвера та витоки пам'яті.`,
+      explorer_crash: `<strong>Збій Explorer.exe — класика 4074!</strong><br>У реальній збірці 4074 оболонка <code>explorer.exe</code> була переписана з використанням C#/.NET та раннього Avalon. Будь-яка помилка в індексаторі WinFS чи перегляді системних папок миттєво «роняла» панель завдань і Sidebar.`,
+      cp_stub: `<strong>Незавершені аплети Control Panel:</strong><br>Навесні 2004 року Microsoft переводила Панель керування на нову архітектуру XAML/Avalon, тому близько 40% значків у збірці 4074 були звичайними заглушками або викликали винятки.`,
+      ie605: `<strong>Internet Explorer 6.05 (Longhorn Edition):</strong><br>Оснащений раннім менеджером завантажень та блокувальником спливаючих вікон (ще до виходу Windows XP SP2). Саме тут тестувалися перші ідеї, які згодом увійшли до IE 7.`,
+      wmp: `<strong>Windows Media Player 9/10 Longhorn:</strong><br>Мав спеціальну синьо-металеву обкладинку під стиль ОС. Онлайн-сервіси MSN Music 2004 року сьогодні, звісно, вже не відповідають, що імітує помилка <code>C00D1199</code>.`,
+      bsod: `<strong>Синій екран смерті (WINFS.SYS / DCE.DLL):</strong><br>Найчастішими винуватцями BSOD у збірці 4074 були драйвер файлової бази даних <code>WINFS.SYS</code> та композитор вікон <code>DCE.DLL</code>.`
+    };
+
+    function notifyHistorian(topicKey, customHtml = null) {
+      const box = document.getElementById('agent-content');
+      if (!box) return;
+      box.innerHTML = customHtml || HistorianKB[topicKey] || HistorianKB.boot;
+    }
+
+    document.querySelectorAll('.agent-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        SoundEngine.click();
+        notifyHistorian(btn.dataset.topic);
+      });
+    });
+
+    document.getElementById('agent-hide-btn').addEventListener('click', () => {
+      document.getElementById('longhorn-agent').classList.add('minimized');
+    });
+
+    document.getElementById('tray-agent-toggle').addEventListener('click', () => {
+      document.getElementById('longhorn-agent').classList.toggle('minimized');
+    });
+
+    /* ==========================================================================
+       5. МОДАЛЬНІ ПОМИЛКИ, BALLOON СПОВІЩЕННЯ, ПАДІННЯ EXPLORER ТА BSOD
+       ========================================================================== */
+    function showSysDialog(title, message, icon = '⚠️') {
+      SoundEngine.error();
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-text').innerHTML = message;
+      document.getElementById('modal-icon').textContent = icon;
+      document.getElementById('modal-overlay').classList.add('open');
+    }
+
+    function closeSysDialog() {
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
+
+    document.getElementById('modal-ok').addEventListener('click', closeSysDialog);
+    document.getElementById('modal-x').addEventListener('click', closeSysDialog);
+
+    function showBalloon(title, text) {
+      const b = document.getElementById('tray-balloon');
+      b.innerHTML = `<strong>ⓘ ${title}</strong><div style="margin-top:4px;">${text}</div>`;
+      b.style.display = 'block';
+      SoundEngine.notify();
+      setTimeout(() => { b.style.display = 'none'; }, 5500);
+    }
+
+    // Імітація реального падіння та перезавантаження explorer.exe + Sidebar
+    function triggerExplorerCrash(reason = 'WINFS_INDEXER_EXCEPTION') {
+      SoundEngine.error();
+      notifyHistorian('explorer_crash');
+      const taskbar = document.getElementById('taskbar');
+      const sidebar = document.getElementById('sidebar');
+      const icons = document.getElementById('desktop-icons');
+
+      taskbar.style.opacity = '0';
+      sidebar.style.opacity = '0';
+      icons.style.opacity = '0';
+
+      showSysDialog(
+        'explorer.exe - Application Error',
+        `The instruction at "0x7c911e58" referenced memory at "0x00000014". The memory could not be "read".<br><br><code>Fault Module: ${reason}</code><br>Оболонка Windows Longhorn буде перезапущена...`,
+        '❌'
+      );
+
+      setTimeout(() => {
+        taskbar.style.opacity = '1';
+        sidebar.style.opacity = '1';
+        icons.style.opacity = '1';
+        ramUsageMB = Math.max(290, ramUsageMB - 180);
+        updateRamUI();
+        showBalloon(
+          'Windows Explorer відновив роботу',
+          'Оболонка explorer.exe та Windows Sidebar успішно перезавантажені після критичної помилки.'
+        );
+      }, 2200);
+    }
+
+    // Синій екран смерті (BSOD Build 4074)
+    function triggerBSOD(fault = 'PAGE_FAULT_IN_NONPAGED_AREA', driver = 'WINFS.SYS') {
+      SoundEngine.error();
+      notifyHistorian('bsod');
+      document.getElementById('bsod-fault-name').textContent = fault;
+      document.getElementById('bsod-driver-info').textContent =
+        `*** ${driver} - Address BF8912A4 base at BF800000, DateStamp 408b9d12 (Build 4074)`;
+      document.getElementById('bsod-screen').classList.add('active');
+    }
+
+    document.getElementById('bsod-reboot-btn').addEventListener('click', () => {
+      location.reload();
+    });
+
+    /* ==========================================================================
+       6. МЕНЕДЖЕР ВІКОН (DRAG, RESIZE, Z-INDEX, MINIMIZE, MAXIMIZE, MEMORY LEAK)
+       ========================================================================== */
+    const TOTAL_RAM_MB = 1536; // 1536 MB = 1,572,864 KB (1.5 GB фізичної пам'яті)
+    const TOTAL_RAM_KB_STR = '1,572,864 KB';
+
+    let windowsState = [];
+    let topZ = 100;
+    let activeWinId = null;
+    let ramUsageMB = 312;
+
+    // Єдиний глобальний стан для перетягування (drag) та зміни розміру (resize) вікон
+    let activeWindowInteraction = null;
+
+    function initGlobalWindowListeners() {
+      window.addEventListener('mousemove', (e) => {
+        if (!activeWindowInteraction) return;
+        const { type, win, startX, startY, startLeft, startTop, startW, startH } = activeWindowInteraction;
+        if (!win || !document.body.contains(win)) {
+          activeWindowInteraction = null;
+          return;
+        }
+
+        if (type === 'drag') {
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          win.style.left = Math.max(-100, startLeft + dx) + 'px';
+          win.style.top = Math.max(0, Math.min(window.innerHeight - 70, startTop + dy)) + 'px';
+        } else if (type === 'resize') {
+          win.style.width = Math.max(300, startW + (e.clientX - startX)) + 'px';
+          win.style.height = Math.max(200, startH + (e.clientY - startY)) + 'px';
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (activeWindowInteraction) {
+          activeWindowInteraction = null;
+        }
+      });
+    }
+
+    function updateRamUI() {
+      const pct = Math.min(100, Math.round((ramUsageMB / TOTAL_RAM_MB) * 100));
+      const roundedRam = Math.round(ramUsageMB);
+      document.getElementById('sb-ram-text').textContent = `${roundedRam} / ${TOTAL_RAM_MB} MB`;
+      document.getElementById('tray-ram-val').textContent = `${roundedRam} / ${TOTAL_RAM_MB} MB`;
+      document.getElementById('tray-ram-badge').title =
+        `Завантаження пам'яті: ${roundedRam} MB з ${TOTAL_RAM_MB} MB (${TOTAL_RAM_KB_STR})`;
+      document.getElementById('sb-ram-bar').style.width = `${pct}%`;
+
+      // Якщо RAM > 750 MB — вмикаємо реалістичне підгальмовування анімації DCE/Avalon
+      if (ramUsageMB > 750) {
+        document.body.classList.add('dce-lag');
+      } else {
+        document.body.classList.remove('dce-lag');
+      }
+
+      // Якщо RAM досягає межі фізичної пам'яті (1536 MB) — система падає в BSOD
+      if (ramUsageMB >= TOTAL_RAM_MB) {
+        triggerBSOD('MEMORY_MANAGEMENT_DCE_OVERFLOW', 'DCE.DLL');
+      }
+    }
+
+    // Фоновий витік пам'яті (1.4 MB/сек + додатково за кожне відкрите вікно)
+    setInterval(() => {
+      const leakRate = 1.4 + windowsState.length * 1.1;
+      ramUsageMB += leakRate;
+      updateRamUI();
+    }, 1000);
+
+    document.getElementById('sb-gc-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      ramUsageMB = Math.max(280, ramUsageMB - 260);
+      updateRamUI();
+      showBalloon('DCE Garbage Collector', 'Примусово звільнено частину витоку пам’яті Avalon/WinFS.');
+    });
+
+    function focusWindow(id) {
+      activeWinId = id;
+      topZ++;
+      windowsState.forEach(w => {
+        const el = document.getElementById(w.id);
+        if (!el) return;
+        if (w.id === id) {
+          w.minimized = false;
+          el.style.display = 'flex';
+          el.style.zIndex = topZ;
+          el.classList.remove('inactive');
+        } else {
+          el.classList.add('inactive');
+        }
+      });
+      renderTaskbar();
+    }
+
+    function closeWindow(id) {
+      const idx = windowsState.findIndex(w => w.id === id);
+      if (idx !== -1) windowsState.splice(idx, 1);
+      const el = document.getElementById(id);
+      if (activeWindowInteraction && activeWindowInteraction.win === el) {
+        activeWindowInteraction = null;
+      }
+      if (el) el.remove();
+      if (activeWinId === id) activeWinId = null;
+      renderTaskbar();
+    }
+
+    function toggleMinimize(id) {
+      const w = windowsState.find(item => item.id === id);
+      if (!w) return;
+      const el = document.getElementById(id);
+      if (w.minimized) {
+        focusWindow(id);
+      } else {
+        w.minimized = true;
+        el.style.display = 'none';
+        if (activeWinId === id) activeWinId = null;
+        renderTaskbar();
+      }
+    }
+
+    function toggleMaximize(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('maximized');
+    }
+
+    function renderTaskbar() {
+      const container = document.getElementById('taskbar-tasks');
+      container.innerHTML = '';
+      windowsState.forEach(w => {
+        const btn = document.createElement('button');
+        btn.className = 'task-btn' + (w.id === activeWinId && !w.minimized ? ' active' : '');
+        btn.innerHTML = `<span style="width:16px;height:16px;display:inline-flex;">${w.icon}</span><span>${w.title}</span>`;
+        btn.addEventListener('click', () => {
+          if (w.id === activeWinId && !w.minimized) {
+            toggleMinimize(w.id);
+          } else {
+            focusWindow(w.id);
+          }
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    function createWindow({ appType, title, icon, width = 620, height = 420, contentBuilder }) {
+      SoundEngine.click();
+      ramUsageMB += 48; // Відкриття нового вікна витрачає пам'ять DCE
+      updateRamUI();
+
+      // Якщо відкрито 10+ вікон одночасно — BSOD через перевантаження DCE
+      if (windowsState.length >= 9) {
+        triggerBSOD('VIDEO_MEMORY_MANAGEMENT_INTERNAL', 'DCE.DLL');
+        return;
+      }
+
+      const id = 'win-' + Date.now() + '-' + Math.floor(Math.random() * 999);
+      const offset = (windowsState.length % 7) * 26;
+      const left = Math.min(window.innerWidth - width - 30, Math.max(20, 70 + offset));
+      const top = Math.min(window.innerHeight - height - 60, Math.max(18, 32 + offset));
+
+      const winEl = document.createElement('div');
+      winEl.className = 'window';
+      winEl.id = id;
+      winEl.style.width = width + 'px';
+      winEl.style.height = height + 'px';
+      winEl.style.left = left + 'px';
+      winEl.style.top = top + 'px';
+
+      winEl.innerHTML = `
+        <div class="win-titlebar">
+          <div class="win-title-left">
+            <span style="width:18px;height:18px;display:inline-flex;">${icon}</span>
+            <span class="win-title-text">${title}</span>
+          </div>
+          <div class="win-controls">
+            <button class="win-btn min" title="Згорнути">_</button>
+            <button class="win-btn max" title="Розгорнути">□</button>
+            <button class="win-btn close" title="Закрити">✕</button>
+          </div>
+        </div>
+        <div class="win-content"></div>
+        <div class="win-resizer"></div>
+      `;
+
+      document.getElementById('windows-layer').appendChild(winEl);
+
+      const contentEl = winEl.querySelector('.win-content');
+      contentBuilder(contentEl, id, winEl);
+
+      // Керування кнопками вікна
+      winEl.querySelector('.min').addEventListener('click', (e) => { e.stopPropagation(); toggleMinimize(id); });
+      winEl.querySelector('.max').addEventListener('click', (e) => { e.stopPropagation(); toggleMaximize(id); });
+      winEl.querySelector('.close').addEventListener('click', (e) => { e.stopPropagation(); closeWindow(id); });
+      winEl.addEventListener('mousedown', () => focusWindow(id));
+
+      // Реєстрація початку перетягування вікна (через глобальний activeWindowInteraction)
+      const titlebar = winEl.querySelector('.win-titlebar');
+      titlebar.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.win-controls') || winEl.classList.contains('maximized')) return;
+        focusWindow(id);
+        activeWindowInteraction = {
+          type: 'drag',
+          win: winEl,
+          startX: e.clientX,
+          startY: e.clientY,
+          startLeft: winEl.offsetLeft,
+          startTop: winEl.offsetTop,
+          startW: winEl.offsetWidth,
+          startH: winEl.offsetHeight
+        };
+      });
+
+      // Реєстрація початку зміни розміру вікна (через глобальний activeWindowInteraction)
+      const resizer = winEl.querySelector('.win-resizer');
+      resizer.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        if (winEl.classList.contains('maximized')) return;
+        focusWindow(id);
+        activeWindowInteraction = {
+          type: 'resize',
+          win: winEl,
+          startX: e.clientX,
+          startY: e.clientY,
+          startLeft: winEl.offsetLeft,
+          startTop: winEl.offsetTop,
+          startW: winEl.offsetWidth,
+          startH: winEl.offsetHeight
+        };
+      });
+
+      windowsState.push({ id, appType, title, icon, minimized: false });
+      focusWindow(id);
+      return id;
+    }
+
+    /* ==========================================================================
+       7. ПРОГРАМИ LONGHORN 4074
+       ========================================================================== */
+
+    // 7.1. ПРОВІДНИК WINDOWS EXPLORER (З BREADCRUMBS ТА WINFS STACKS)
+    function openExplorer(initialLocation = 'My Computer') {
+      notifyHistorian('winfs');
+      createWindow({
+        appType: 'explorer',
+        title: `Windows Explorer — ${initialLocation}`,
+        icon: Icons.folder,
+        width: 680,
+        height: 440,
+        contentBuilder: (container, winId, winEl) => {
+          let currentLoc = initialLocation;
+          let selectedFile = null;
+
+          container.innerHTML = `
+            <div class="exp-toolbar">
+              <button class="exp-nav-btn" id="${winId}-up">⬆ Вгору</button>
+              <div class="exp-breadcrumbs" id="${winId}-crumbs"></div>
+            </div>
+            <div class="exp-main">
+              <div class="exp-sidebar">
+                <div class="winfs-card">
+                  <h4>WinFS Stacks (Віртуальні)</h4>
+                  <div class="winfs-stack-link" data-loc="Stack: All Documents">📄 All Documents</div>
+                  <div class="winfs-stack-link" data-loc="Stack: All Pictures">🖼️ All Pictures</div>
+                  <div class="winfs-stack-link" data-loc="Stack: All Music">🎵 All Music</div>
+                </div>
+                <div class="winfs-card">
+                  <h4>Місця (Storage)</h4>
+                  <div class="winfs-stack-link" data-loc="My Computer">💻 My Computer</div>
+                  <div class="winfs-stack-link" data-loc="Desktop">🖥️ Desktop</div>
+                  <div class="winfs-stack-link" data-loc="My Documents">📁 My Documents</div>
+                  <div class="winfs-stack-link" data-loc="My Pictures">📁 My Pictures</div>
+                  <div class="winfs-stack-link" data-loc="My Music">📁 My Music</div>
+                </div>
+                <div class="winfs-card" id="${winId}-preview">
+                  <h4>WinFS Metadata</h4>
+                  <div style="color:#4a6582;">Оберіть файл або папку для перегляду метаданих схеми WinFS.</div>
+                </div>
+              </div>
+              <div class="exp-grid" id="${winId}-grid"></div>
+            </div>
+          `;
+
+          const grid = container.querySelector(`#${winId}-grid`);
+          const crumbs = container.querySelector(`#${winId}-crumbs`);
+          const preview = container.querySelector(`#${winId}-preview`);
+
+          function renderLocation(loc) {
+            // Пастка збірки 4074: відкриття WinSxS викликає збій Explorer
+            if (loc === 'C:\\WINDOWS\\WinSxS') {
+              triggerExplorerCrash('SXS_ASSEMBLY_MANIFEST_CORRUPT');
+              return;
+            }
+
+            currentLoc = loc;
+            selectedFile = null;
+            winEl.querySelector('.win-title-text').textContent = `Windows Explorer — ${loc}`;
+
+            // Хлібні крихти (Breadcrumbs)
+            const parts = ['My Computer'];
+            if (loc !== 'My Computer') parts.push(loc);
+            crumbs.innerHTML = parts.map((p, i) =>
+              `<span class="crumb-item" data-jump="${p}">${p}</span>${i < parts.length - 1 ? ' ▸ ' : ''}`
+            ).join('');
+
+            crumbs.querySelectorAll('.crumb-item').forEach(el => {
+              el.addEventListener('click', () => renderLocation(el.dataset.jump));
+            });
+
+            grid.innerHTML = '';
+            let items = [];
+
+            if (loc === 'My Computer') {
+              items = [
+                { isFolder: true, name: 'Local Disk (C:)', target: 'C:\\', icon: Icons.computer, meta: 'NTFS + WinFS Enabled • 37.2 GB' },
+                { isFolder: true, name: 'My Documents', target: 'My Documents', icon: Icons.folder, meta: 'WinFS User Store' },
+                { isFolder: true, name: 'My Pictures', target: 'My Pictures', icon: Icons.folder, meta: 'Phodeo Media Library' },
+                { isFolder: true, name: 'My Music', target: 'My Music', icon: Icons.folder, meta: 'WMP Audio Store' },
+                { isFolder: true, name: 'All Documents (Stack)', target: 'Stack: All Documents', icon: Icons.stack, meta: 'Віртуальний запит WinFS' }
+              ];
+            } else if (loc === 'C:\\') {
+              items = [
+                { isFolder: true, name: 'Documents and Settings', target: 'My Documents', icon: Icons.folder, meta: 'Профілі користувачів' },
+                { isFolder: true, name: 'Program Files', target: 'C:\\Program Files', icon: Icons.folder, meta: 'Встановлені програми' },
+                { isFolder: true, name: 'WINDOWS', target: 'C:\\WINDOWS', icon: Icons.folder, meta: 'Системний каталог Build 4074' }
+              ];
+            } else if (loc === 'C:\\Program Files') {
+              items = [
+                { isFolder: false, name: 'Internet Explorer 6.05', action: openIE, icon: Icons.ie, meta: 'Build 6.0.4074.0' },
+                { isFolder: false, name: 'Windows Media Player', action: () => openWMP(), icon: Icons.wmp, meta: 'Version 9.00.00.4074' }
+              ];
+            } else if (loc === 'C:\\WINDOWS') {
+              items = [
+                { isFolder: true, name: 'System32', target: 'C:\\WINDOWS\\System32', icon: Icons.folder, meta: 'Системні бібліотеки та драйвери' },
+                { isFolder: true, name: 'WinSxS (Небезпечно!)', target: 'C:\\WINDOWS\\WinSxS', icon: Icons.folder, meta: 'Side-by-Side Assemblies (Зламано у 4074)' }
+              ];
+            } else if (loc.startsWith('Stack: ')) {
+              const stackType = loc.replace('Stack: ', '');
+              let filtered = [];
+              if (stackType === 'All Documents') filtered = winfsFiles.filter(f => f.type === 'document');
+              if (stackType === 'All Pictures') filtered = winfsFiles.filter(f => f.type === 'picture');
+              if (stackType === 'All Music') filtered = winfsFiles.filter(f => f.type === 'music');
+              items = filtered.map(f => ({ isFolder: false, file: f }));
+            } else {
+              items = winfsFiles.filter(f => f.folder === loc).map(f => ({ isFolder: false, file: f }));
+            }
+
+            items.forEach(item => {
+              const card = document.createElement('div');
+              card.className = 'exp-file-item';
+              if (item.isFolder) {
+                card.innerHTML = `<div style="width:44px;height:44px;">${item.icon}</div><div style="font-size:11.5px;margin-top:4px;">${item.name}</div>`;
+                card.addEventListener('click', () => {
+                  grid.querySelectorAll('.exp-file-item').forEach(x => x.classList.remove('selected'));
+                  card.classList.add('selected');
+                  preview.innerHTML = `<h4>${item.name}</h4><div>${item.meta}</div>`;
+                });
+                card.addEventListener('dblclick', () => renderLocation(item.target));
+              } else if (item.action) {
+                card.innerHTML = `<div style="width:44px;height:44px;">${item.icon}</div><div style="font-size:11.5px;margin-top:4px;">${item.name}</div>`;
+                card.addEventListener('dblclick', item.action);
+              } else {
+                const f = item.file;
+                const fIcon = f.type === 'document' ? Icons.doc : f.type === 'picture' ? Icons.picture : f.type === 'music' ? Icons.music : Icons.sys;
+                card.innerHTML = `<div style="width:44px;height:44px;">${fIcon}</div><div style="font-size:11.5px;margin-top:4px;word-break:break-word;">${f.name}</div>`;
+                card.addEventListener('click', () => {
+                  grid.querySelectorAll('.exp-file-item').forEach(x => x.classList.remove('selected'));
+                  card.classList.add('selected');
+                  selectedFile = f;
+                  preview.innerHTML = `
+                    <h4>${f.name}</h4>
+                    <div><b>Тип:</b> WinFS.${f.type}</div>
+                    <div><b>Автор:</b> ${f.author}</div>
+                    <div><b>Теги:</b> ${f.tags}</div>
+                    <div><b>Розмір:</b> ${f.size}</div>
+                  `;
+                });
+                card.addEventListener('dblclick', () => openFileObject(f));
+              }
+              grid.appendChild(card);
+            });
+          }
+
+          container.querySelector(`#${winId}-up`).addEventListener('click', () => {
+            if (currentLoc === 'C:\\WINDOWS\\System32') renderLocation('C:\\WINDOWS');
+            else if (currentLoc === 'C:\\WINDOWS' || currentLoc === 'C:\\Program Files') renderLocation('C:\\');
+            else renderLocation('My Computer');
+          });
+
+          container.querySelectorAll('.winfs-stack-link').forEach(link => {
+            link.addEventListener('click', () => renderLocation(link.dataset.loc));
+          });
+
+          renderLocation(initialLocation);
+        }
+      });
+    }
+
+    function openFileObject(file) {
+      if (file.type === 'document' || file.type === 'system') {
+        openNotepad(file);
+      } else if (file.type === 'picture') {
+        openPictureViewer(file);
+      } else if (file.type === 'music') {
+        openWMP(file);
+      }
+    }
+
+    // 7.2. БЛОКНОТ (NOTEPAD — ЗБЕРЕЖЕННЯ У ВІРТУАЛЬНУ ФАЙЛОВУ СИСТЕМУ WINFS)
+    function openNotepad(fileObj = null) {
+      const targetFile = fileObj || {
+        id: 'f-new-' + Date.now(),
+        name: 'Untitled.txt',
+        folder: 'My Documents',
+        type: 'document',
+        ext: 'txt',
+        author: 'Beta Tester',
+        tags: 'Notepad, User File',
+        size: '1 KB',
+        content: ''
+      };
+
+      createWindow({
+        appType: 'notepad',
+        title: `${targetFile.name} — Notepad`,
+        icon: Icons.doc,
+        width: 520,
+        height: 370,
+        contentBuilder: (container, winId, winEl) => {
+          container.innerHTML = `
+            <div class="notepad-menubar">
+              <button id="${winId}-new">Новий</button>
+              <button id="${winId}-save">💾 Зберегти у WinFS</button>
+              <button id="${winId}-saveas">Зберегти як...</button>
+            </div>
+            <textarea class="notepad-area" id="${winId}-ta">${targetFile.content || ''}</textarea>
+          `;
+
+          const ta = container.querySelector(`#${winId}-ta`);
+
+          container.querySelector(`#${winId}-new`).addEventListener('click', () => {
+            ta.value = '';
+            targetFile.id = 'f-new-' + Date.now();
+            targetFile.name = 'Untitled.txt';
+            winEl.querySelector('.win-title-text').textContent = 'Untitled.txt — Notepad';
+          });
+
+          container.querySelector(`#${winId}-save`).addEventListener('click', () => {
+            if (targetFile.name === 'Untitled.txt') {
+              targetFile.name = `Note_${new Date().getHours()}${new Date().getMinutes()}.txt`;
+            }
+            targetFile.content = ta.value;
+            targetFile.size = Math.max(1, Math.ceil(ta.value.length / 512)) + ' KB';
+
+            const existingIdx = winfsFiles.findIndex(f => f.id === targetFile.id);
+            if (existingIdx >= 0) winfsFiles[existingIdx] = targetFile;
+            else winfsFiles.push(targetFile);
+
+            saveWinFS();
+            winEl.querySelector('.win-title-text').textContent = `${targetFile.name} — Notepad`;
+            showBalloon('WinFS Storage', `Файл "${targetFile.name}" збережено в My Documents (localStorage).`);
+          });
+
+          container.querySelector(`#${winId}-saveas`).addEventListener('click', () => {
+            const customName = `CustomDoc_${Math.floor(Math.random() * 900 + 100)}.txt`;
+            const copy = {
+              ...targetFile,
+              id: 'f-custom-' + Date.now(),
+              name: customName,
+              folder: 'My Documents',
+              content: ta.value
+            };
+            winfsFiles.push(copy);
+            saveWinFS();
+            winEl.querySelector('.win-title-text').textContent = `${customName} — Notepad`;
+            showBalloon('WinFS Storage', `Створено копію "${customName}" у базі даних WinFS.`);
+          });
+        }
+      });
+    }
+
+    // 7.3. ПЕРЕГЛЯДАЧ ЗОБРАЖЕНЬ (WINDOWS PICTURE AND FAX VIEWER)
+    function openPictureViewer(file) {
+      const artworks = {
+        bliss: `<svg viewBox="0 0 600 340" width="100%" height="100%">
+          <defs><linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1560c4"/><stop offset="100%" stop-color="#87c5fa"/></linearGradient></defs>
+          <rect width="600" height="210" fill="url(#skyB)"/>
+          <ellipse cx="160" cy="85" rx="75" ry="24" fill="#fff" opacity="0.85"/>
+          <ellipse cx="440" cy="65" rx="90" ry="26" fill="#fff" opacity="0.8"/>
+          <path d="M0 195 Q180 140 360 195 T600 185 L600 340 L0 340 Z" fill="#59b526"/>
+          <path d="M120 220 Q360 155 600 215 L600 340 L120 340 Z" fill="#3b8f12"/>
+        </svg>`,
+        jade: `<svg viewBox="0 0 600 340" width="100%" height="100%">
+          <rect width="600" height="340" fill="#0d2238"/>
+          <circle cx="420" cy="120" r="140" fill="#2d8ce6" opacity="0.35"/>
+          <path d="M0 240 Q220 120 600 220 L600 340 L0 340 Z" fill="#4696db" opacity="0.4"/>
+          <text x="40" y="295" fill="#9cd2ff" font-size="22" font-family="Segoe UI">Windows Longhorn Build 4074 — Theme "Jade"</text>
+        </svg>`,
+        pdc: `<svg viewBox="0 0 600 340" width="100%" height="100%">
+          <rect width="600" height="340" fill="#173d7a"/>
+          <rect x="40" y="40" width="340" height="220" rx="12" fill="rgba(255,255,255,0.18)" stroke="#9cd0ff" stroke-width="2"/>
+          <rect x="410" y="20" width="160" height="300" rx="8" fill="rgba(10,25,50,0.65)" stroke="#7ab8f5"/>
+          <text x="65" y="135" fill="#fff" font-size="26" font-weight="bold">PDC 2003 / WinHEC 2004</text>
+          <text x="65" y="170" fill="#b8dcff" font-size="16">Avalon • Indigo • WinFS Architecture</text>
+        </svg>`
+      };
+
+      createWindow({
+        appType: 'viewer',
+        title: `${file.name} — Windows Picture and Fax Viewer`,
+        icon: Icons.picture,
+        width: 560,
+        height: 390,
+        contentBuilder: (container) => {
+          container.innerHTML = `
+            <div style="flex:1;background:#1e2630;display:flex;align-items:center;justify-content:center;padding:12px;">
+              <div style="width:100%;height:100%;border-radius:6px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+                ${artworks[file.artId] || artworks.bliss}
+              </div>
+            </div>
+            <div style="background:#e4ecf5;padding:6px 12px;font-size:11.5px;display:flex;justify-content:space-between;">
+              <span>Автор: <b>${file.author}</b></span>
+              <span>WinFS Теги: ${file.tags}</span>
+            </div>
+          `;
+        }
+      });
+    }
+
+    // 7.4. INTERNET EXPLORER 6.05 (З МЕНЕДЖЕРОМ ЗАВАНТАЖЕНЬ ТА СТОРІНКАМИ 2004 РОКУ)
+    function openIE() {
+      notifyHistorian('ie605');
+      createWindow({
+        appType: 'ie',
+        title: 'MSN.com — Microsoft Internet Explorer 6.05 (Longhorn Build)',
+        icon: Icons.ie,
+        width: 720,
+        height: 470,
+        contentBuilder: (container, winId) => {
+          const pages = {
+            'http://www.msn.com/2004': `
+              <div style="font-family:Tahoma,sans-serif;">
+                <div style="background:linear-gradient(90deg,#1a5bb8,#4593e6);color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-size:22px;font-weight:bold;">msn<span style="color:#ffd84d;">.com</span> <small style="font-size:11px;font-weight:normal;">Травень 2004</small></div>
+                  <div style="font-size:11px;">Погода: Київ +19°C • Пошта Hotmail (2 MB)</div>
+                </div>
+                <div style="padding:16px;display:grid;grid-template-columns:1.4fr 1fr;gap:16px;">
+                  <div style="border:1px solid #c5d7eb;border-radius:6px;padding:12px;">
+                    <h3 style="margin-top:0;color:#174c94;">Головні новини технологій (2004)</h3>
+                    <p><b>• WinHEC 2004:</b> Microsoft демонструє нову збірку <i>Windows Longhorn Build 4074</i> із темою оформлення Jade та бічною панеллю Sidebar.</p>
+                    <p><b>• Internet Explorer 6.05:</b> У тестову версію браузера додано вбудований Download Manager та захист від спливаючих вікон.</p>
+                    <button class="sys-btn" data-nav="http://msdn.microsoft.com/longhorn">Перейти на портал розробників Longhorn ▸</button>
+                  </div>
+                  <div style="background:#eef5fc;border:1px solid #c5d7eb;border-radius:6px;padding:12px;">
+                    <h4 style="margin-top:0;color:#174c94;">Швидкі посилання 2004</h4>
+                    <ul style="padding-left:18px;line-height:1.8;">
+                      <li><a href="#" data-nav="http://msdn.microsoft.com/longhorn">MSDN Longhorn Dev Center</a></li>
+                      <li><a href="#" data-nav="http://channel9.msdn.com/2004">Channel 9 Beta Video Archive</a></li>
+                      <li><a href="#" data-nav="http://www.microsoft.com/longhorn/broken">Завантажити Longhorn Beta 1 (404)</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            `,
+            'http://msdn.microsoft.com/longhorn': `
+              <div style="padding:18px;font-family:'Segoe UI',Tahoma,sans-serif;">
+                <div style="background:#1c3b63;color:#fff;padding:12px 16px;border-radius:6px;margin-bottom:14px;">
+                  <h2 style="margin:0;font-size:18px;">MSDN — Windows "Longhorn" Developer Center</h2>
+                  <div style="font-size:11.5px;opacity:0.85;">Build 4074 SDK • Avalon, Indigo &amp; WinFS Preview</div>
+                </div>
+                <p>Завантажте офіційні пакети для тестування підсистем Longhorn у віртуальну папку <b>My Documents</b>:</p>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+                  <div style="border:1px solid #b8cde3;padding:10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;">
+                    <div><b>WinFS_Schema_Docs_4074.txt</b><br><small>Технічний опис схем зберігання WinFS (4 KB)</small></div>
+                    <button class="sys-btn ie-dl-btn" data-fname="WinFS_Schema_Docs_4074.txt">⬇ Завантажити</button>
+                  </div>
+                  <div style="border:1px solid #b8cde3;padding:10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;">
+                    <div><b>Avalon_XAML_Sample.txt</b><br><small>Приклад розмітки інтерфейсу XAML для збірки 4074 (3 KB)</small></div>
+                    <button class="sys-btn ie-dl-btn" data-fname="Avalon_XAML_Sample.txt">⬇ Завантажити</button>
+                  </div>
+                </div>
+              </div>
+            `,
+            'http://channel9.msdn.com/2004': `
+              <div style="padding:18px;background:#f7fafd;">
+                <h2 style="margin-top:0;color:#225588;">Channel 9 — За лаштунками команди Longhorn (2004)</h2>
+                <p>Інженери Microsoft розповідають про створення Desktop Compositing Engine (DCE) та перехід на керований код.</p>
+                <div style="background:#0f1d2e;color:#9cd0ff;padding:16px;border-radius:8px;font-family:monospace;">
+                  [Інтерв'ю: Hillel Cooperman — UX Lead]<br>
+                  "У збірці 4074 ми прагнули створити відчуття глибини та повітря завдяки темі Jade, хоча апаратне прискорення DCE ще потребує оптимізації пам'яті."
+                </div>
+              </div>
+            `,
+            '404': `
+              <div style="padding:28px;font-family:Tahoma,sans-serif;color:#222;">
+                <h2 style="color:#a82020;margin-top:0;">ⓘ Сторінку не знайдено (HTTP 404 — Not Found)</h2>
+                <p>Можливо, сторінку було видалено, перейменовано або вона тимчасово недоступна на серверах 2004 року.</p>
+                <hr style="border:none;border-top:1px solid #ccc;margin:16px 0;">
+                <p style="font-size:12px;color:#555;">Спробуйте перейти на стартову сторінку <a href="#" data-nav="http://www.msn.com/2004">http://www.msn.com/2004</a>.</p>
+                <div style="font-size:11px;color:#777;margin-top:20px;">Internet Explorer 6.05.4074.0 — Windows Longhorn</div>
+              </div>
+            `
+          };
+
+          container.innerHTML = `
+            <div class="ie-bar">
+              <button class="exp-nav-btn" id="${winId}-home">🏠 Home</button>
+              <input type="text" class="ie-url-input" id="${winId}-url" value="http://www.msn.com/2004" />
+              <button class="exp-nav-btn" id="${winId}-go">Перехід</button>
+              <button class="exp-nav-btn" id="${winId}-dl-toggle">📥 Завантаження (0)</button>
+            </div>
+            <div id="${winId}-dl-panel" style="display:none;background:#dce8f5;border-bottom:1px solid #9eb8d4;padding:8px 12px;font-size:12px;">
+              <b>IE 6.05 Download Manager:</b> <span id="${winId}-dl-status">Немає активних завантажень.</span>
+            </div>
+            <div class="ie-viewport" id="${winId}-view"></div>
+          `;
+
+          const urlInput = container.querySelector(`#${winId}-url`);
+          const view = container.querySelector(`#${winId}-view`);
+          const dlPanel = container.querySelector(`#${winId}-dl-panel`);
+          const dlStatus = container.querySelector(`#${winId}-dl-status`);
+          const dlToggle = container.querySelector(`#${winId}-dl-toggle`);
+          let dlCount = 0;
+
+          function navigate(url) {
+            urlInput.value = url;
+            view.innerHTML = pages[url] || pages['404'];
+
+            view.querySelectorAll('[data-nav]').forEach(el => {
+              el.addEventListener('click', (e) => {
+                e.preventDefault();
+                navigate(el.dataset.nav);
+              });
+            });
+
+            view.querySelectorAll('.ie-dl-btn').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const fname = btn.dataset.fname;
+                dlPanel.style.display = 'block';
+                dlStatus.textContent = `Завантаження ${fname}... 100% Завершено!`;
+                dlCount++;
+                dlToggle.textContent = `📥 Завантаження (${dlCount})`;
+
+                winfsFiles.push({
+                  id: 'f-dl-' + Date.now(),
+                  name: fname,
+                  folder: 'My Documents',
+                  type: 'document',
+                  ext: 'txt',
+                  author: 'MSDN Download',
+                  tags: 'IE 6.05, Downloaded',
+                  size: '4 KB',
+                  content: `Завантажено через Internet Explorer 6.05 (Longhorn Build 4074).\nФайл: ${fname}\nДата: 2004-05-12`
+                });
+                saveWinFS();
+                showBalloon('IE 6.05 Download Manager', `Файл "${fname}" успішно завантажено до My Documents.`);
+              });
+            });
+          }
+
+          container.querySelector(`#${winId}-home`).addEventListener('click', () => navigate('http://www.msn.com/2004'));
+          container.querySelector(`#${winId}-go`).addEventListener('click', () => navigate(urlInput.value.trim()));
+          urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigate(urlInput.value.trim()); });
+          dlToggle.addEventListener('click', () => {
+            dlPanel.style.display = dlPanel.style.display === 'none' ? 'block' : 'none';
+          });
+
+          navigate('http://www.msn.com/2004');
+        }
+      });
+    }
+
+    // 7.5. КОМАНДНИЙ РЯДОК (CMD.EXE — BUILD 4074)
+    function openCMD() {
+      createWindow({
+        appType: 'cmd',
+        title: 'Command Prompt — cmd.exe',
+        icon: Icons.cmd,
+        width: 580,
+        height: 360,
+        contentBuilder: (container, winId) => {
+          container.innerHTML = `
+            <div class="cmd-terminal" id="${winId}-term">
+              <div class="cmd-output" id="${winId}-out">Microsoft Windows [Version 6.0.4074]
+(C) Copyright 1985-2004 Microsoft Corp.
+
+Введіть "help" для списку доступних команд (спробуйте: ver, dir, winver, tasklist, taskkill, crash).
+</div>
+              <div class="cmd-input-line">
+                <span>C:\\Documents and Settings\\Tester&gt;</span>
+                <input type="text" id="${winId}-in" autocomplete="off" spellcheck="false" />
+              </div>
+            </div>
+          `;
+
+          const out = container.querySelector(`#${winId}-out`);
+          const input = container.querySelector(`#${winId}-in`);
+          const term = container.querySelector(`#${winId}-term`);
+
+          term.addEventListener('click', () => input.focus());
+          setTimeout(() => input.focus(), 50);
+
+          function printLine(txt) {
+            out.textContent += '\n' + txt;
+            term.scrollTop = term.scrollHeight;
+          }
+
+          input.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            const raw = input.value.trim();
+            input.value = '';
+            printLine(`C:\\Documents and Settings\\Tester> ${raw}`);
+            if (!raw) return;
+
+            const cmd = raw.toLowerCase();
+            if (cmd === 'ver') {
+              printLine('\nMicrosoft Windows [Version 6.0.4074.idx02.040425-1535]\n');
+            } else if (cmd === 'help') {
+              printLine(
+`Доступні команди Longhorn Build 4074:
+  VER       Вивести версію ядра Windows Longhorn
+  WINVER    Відкрити графічне вікно відомостей про систему
+  DIR       Показати файли у базі даних WinFS
+  TASKLIST  Список активних процесів (dce.exe, winfs.exe, explorer.exe)
+  TASKKILL  Завершити процес (напр.: taskkill /im explorer.exe)
+  MEMLEAK   Симулювати різкий витік пам'яті Avalon/DCE (+450 MB)
+  CRASH     Викликати критичну помилку ядра WINFS.SYS (BSOD)
+  CLS       Очистити екран термінала`
+              );
+            } else if (cmd === 'cls') {
+              out.textContent = '';
+            } else if (cmd === 'winver') {
+              openWinver();
+              printLine('Запуск winver.exe...');
+            } else if (cmd === 'dir') {
+              printLine('\n Volume in drive C is LONGHORN_4074\n Directory of WinFS:\\My Documents\n');
+              winfsFiles.forEach(f => {
+                printLine(`04/25/2004  03:35 PM    ${f.size.padEnd(10)} ${f.name}`);
+              });
+            } else if (cmd === 'tasklist') {
+              printLine(
+`Image Name                   PID Session Name        Mem Usage
+========================= ====== ================ ============
+System                         4 Console                 240 K
+winfs.exe                    612 Console             118,420 K
+dce.exe                      844 Console             142,110 K
+explorer.exe                1024 Console             ${Math.round(ramUsageMB * 420)} K
+sidebar.exe                 1108 Console              64,800 K
+cmd.exe                     1420 Console               4,120 K`
+              );
+            } else if (cmd.startsWith('taskkill')) {
+              if (cmd.includes('explorer')) {
+                printLine('SUCCESS: Sent termination signal to "explorer.exe".');
+                triggerExplorerCrash('MANUAL_TASKKILL_EXPLORER');
+              } else if (cmd.includes('winfs')) {
+                triggerBSOD('CRITICAL_PROCESS_DIED', 'WINFS.SYS');
+              } else {
+                printLine('Використання: taskkill /im explorer.exe або taskkill /im winfs.exe');
+              }
+            } else if (cmd === 'memleak') {
+              ramUsageMB += 450;
+              updateRamUI();
+              notifyHistorian('leak');
+              printLine(`WARNING: Avalon/DCE allocated +450 MB unreferenced handles. Total RAM: ${Math.round(ramUsageMB)} MB`);
+            } else if (cmd === 'crash') {
+              triggerBSOD('PAGE_FAULT_IN_NONPAGED_AREA', 'WINFS.SYS');
+            } else {
+              printLine(`'${raw}' is not recognized as an internal or external command.`);
+            }
+          });
+        }
+      });
+    }
+
+    // 7.6. ВІКНО WINVER (ABOUT WINDOWS LONGHORN PROFESSIONAL)
+    function openWinver() {
+      createWindow({
+        appType: 'winver',
+        title: 'About Windows',
+        icon: Icons.sys,
+        width: 450,
+        height: 315,
+        contentBuilder: (container, winId) => {
+          container.innerHTML = `
+            <div style="background:linear-gradient(90deg,#1d569e,#4b92e3);color:#fff;padding:16px 20px;display:flex;align-items:center;gap:14px;">
+              <div style="font-size:32px;">🪟</div>
+              <div>
+                <div style="font-size:20px;font-weight:300;">Microsoft <b style="font-weight:600;">Windows Longhorn</b></div>
+                <div style="font-size:12px;opacity:0.9;">Longhorn Professional • Code Name "Longhorn"</div>
+              </div>
+            </div>
+            <div style="padding:16px 20px;font-size:12px;line-height:1.55;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+              <div>
+                <div>Version 6.0 (Build <b>4074.idx02.040425-1535</b>)</div>
+                <div>Copyright © 1985-2004 Microsoft Corporation. All rights reserved.</div>
+                <hr style="border:none;border-top:1px solid #cbd8e6;margin:10px 0;">
+                <div>Physical memory available to Windows: <b>${TOTAL_RAM_KB_STR} (${TOTAL_RAM_MB} MB)</b></div>
+                <div>Desktop Compositing Engine (DCE): <b>Enabled (Software/D3D9)</b></div>
+              </div>
+              <div style="text-align:right;">
+                <button class="sys-btn" id="${winId}-ok">OK</button>
+              </div>
+            </div>
+          `;
+          container.querySelector(`#${winId}-ok`).addEventListener('click', () => closeWindow(winId));
+        }
+      });
+    }
+
+    // 7.7. ВЛАСТИВОСТІ ЕКРАНА (DISPLAY PROPERTIES — ПЕРЕМИКАЧ ТЕМ JADE, PLEX, AERO)
+    function openDisplayProperties() {
+      createWindow({
+        appType: 'display',
+        title: 'Display Properties',
+        icon: Icons.cp,
+        width: 450,
+        height: 360,
+        contentBuilder: (container, winId) => {
+          container.innerHTML = `
+            <div style="padding:16px;display:flex;flex-direction:column;gap:14px;flex:1;justify-content:space-between;">
+              <div>
+                <h4 style="margin:0 0 8px 0;color:#1b4b82;">Тема оформлення вікон (Visual Style)</h4>
+                <select id="${winId}-theme" style="width:100%;padding:6px;border-radius:4px;border:1px solid #8ea8c4;font-size:12.5px;">
+                  <option value="theme-jade" ${document.body.classList.contains('theme-jade') ? 'selected' : ''}>Jade (Стандартна тема Build 4074)</option>
+                  <option value="theme-plex" ${document.body.classList.contains('theme-plex') ? 'selected' : ''}>Plex (Синій стиль збірок 4008–4051)</option>
+                  <option value="theme-aero" ${document.body.classList.contains('theme-aero') ? 'selected' : ''}>Aero (Темне скло DCE / DWM Prototype)</option>
+                </select>
+
+                <h4 style="margin:16px 0 8px 0;color:#1b4b82;">Шпалери робочого столу (Desktop Background)</h4>
+                <select id="${winId}-wp" style="width:100%;padding:6px;border-radius:4px;border:1px solid #8ea8c4;font-size:12.5px;">
+                  <option value="wp-bliss" ${document.getElementById('desktop').classList.contains('wp-bliss') ? 'selected' : ''}>Longhorn Bliss 4074 (Зелені пагорби)</option>
+                  <option value="wp-aurora" ${document.getElementById('desktop').classList.contains('wp-aurora') ? 'selected' : ''}>Longhorn Aurora Dark (Темна хвиля 4074)</option>
+                </select>
+
+                <div style="margin-top:14px;padding:10px;background:#e3edf7;border-radius:6px;font-size:11.5px;color:#23456b;">
+                  ⓘ Примітка: Перемикання на тему <b>Aero</b> активує розмиття <code>backdrop-filter</code>, що імітує ранній композитор DCE.
+                </div>
+              </div>
+
+              <div style="display:flex;justify-content:flex-end;gap:8px;">
+                <button class="sys-btn" id="${winId}-apply">Застосувати</button>
+                <button class="sys-btn" id="${winId}-close">OK</button>
+              </div>
+            </div>
+          `;
+
+          const themeSel = container.querySelector(`#${winId}-theme`);
+          const wpSel = container.querySelector(`#${winId}-wp`);
+
+          function applySettings() {
+            document.body.classList.remove('theme-jade', 'theme-plex', 'theme-aero');
+            document.body.classList.add(themeSel.value);
+
+            const desk = document.getElementById('desktop');
+            desk.classList.remove('wp-bliss', 'wp-aurora');
+            desk.classList.add(wpSel.value);
+
+            if (themeSel.value === 'theme-jade') notifyHistorian('theme_jade');
+            if (themeSel.value === 'theme-plex') notifyHistorian('theme_plex');
+            if (themeSel.value === 'theme-aero') notifyHistorian('theme_aero');
+          }
+
+          container.querySelector(`#${winId}-apply`).addEventListener('click', applySettings);
+          container.querySelector(`#${winId}-close`).addEventListener('click', () => {
+            applySettings();
+            closeWindow(winId);
+          });
+        }
+      });
+    }
+
+    // 7.8. ПАНЕЛЬ КЕРУВАННЯ (CONTROL PANEL — З РОБОЧИМИ ТА ЗЛАМАНИМИ АПЛЕТАМИ 4074)
+    function openControlPanel() {
+      notifyHistorian('cp_stub');
+      createWindow({
+        appType: 'cp',
+        title: 'Control Panel — Longhorn System Configuration',
+        icon: Icons.cp,
+        width: 560,
+        height: 380,
+        contentBuilder: (container) => {
+          const applets = [
+            { name: 'Display', desc: 'Теми Jade / Plex / Aero', ok: true, action: openDisplayProperties },
+            { name: 'System', desc: 'Інформація про збірку 4074', ok: true, action: openWinver },
+            { name: 'Task Manager', desc: 'Монітор процесів та RAM', ok: true, action: openTaskManager },
+            { name: 'WinFS Indexing', desc: 'Налаштування БД WinFS', ok: false, crashExplorer: true },
+            { name: 'Speech', desc: 'Розпізнавання мовлення', ok: false },
+            { name: 'Game Controllers', desc: 'Ігрові маніпулятори', ok: false },
+            { name: 'User Accounts', desc: 'Облікові записи', ok: false },
+            { name: 'Network Setup', desc: 'Майстер мережі', ok: false }
+          ];
+
+          container.innerHTML = `
+            <div style="background:var(--win-header-bar);padding:8px 12px;border-bottom:1px solid #b4c7db;font-size:12px;">
+              Панель керування (Частина компонентів у збірці 4074 перебуває у стадії розробки Avalon)
+            </div>
+            <div style="flex:1;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;overflow-y:auto;">
+              ${applets.map((a, i) => `
+                <div class="exp-file-item cp-item" data-idx="${i}" style="border:1px solid #dce6f0;background:#f8fbff;">
+                  <div style="width:36px;height:36px;">${a.ok ? Icons.cp : Icons.sys}</div>
+                  <div style="font-weight:600;font-size:12px;margin-top:4px;">${a.name}</div>
+                  <div style="font-size:10.5px;color:#556e8a;">${a.desc}</div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+
+          container.querySelectorAll('.cp-item').forEach(el => {
+            el.addEventListener('dblclick', () => {
+              const item = applets[Number(el.dataset.idx)];
+              if (item.ok) {
+                item.action();
+              } else if (item.crashExplorer) {
+                triggerExplorerCrash('WINFS_SCHEMA_INDEXER_HUNG');
+              } else {
+                notifyHistorian('cp_stub');
+                showSysDialog(
+                  `${item.name}.cpl — Control Panel`,
+                  `This feature is not implemented in this build (<b>4074.idx02.040425-1535</b>).<br><br>Component migration to Avalon/XAML is incomplete.`,
+                  '⚠️'
+                );
+              }
+            });
+          });
+        }
+      });
+    }
+
+    // 7.9. ДИСПЕТЧЕР ЗАВДАНЬ (TASK MANAGER — ПРОЦЕСИ ТА ГРАФІК ВИТОКУ ПАМ'ЯТІ)
+    function openTaskManager() {
+      notifyHistorian('leak');
+      createWindow({
+        appType: 'taskmgr',
+        title: 'Windows Task Manager (Build 4074)',
+        icon: Icons.taskmgr,
+        width: 480,
+        height: 370,
+        contentBuilder: (container, winId) => {
+          container.innerHTML = `
+            <div style="padding:10px;display:flex;flex-direction:column;gap:8px;flex:1;">
+              <div style="font-size:12px;display:flex;justify-content:space-between;">
+                <span>Активні процеси (Натисніть для вибору):</span>
+                <span style="color:#b82525;font-weight:600;" id="${winId}-ram-lbl">Commit Charge: ${Math.round(ramUsageMB)} MB</span>
+              </div>
+              <div style="flex:1;border:1px solid #9eb5cc;background:#fff;overflow-y:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:12px;" id="${winId}-tbl">
+                  <thead>
+                    <tr style="background:#dce7f3;text-align:left;">
+                      <th style="padding:5px;">Image Name</th>
+                      <th style="padding:5px;">CPU</th>
+                      <th style="padding:5px;">Mem Usage</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <button class="sys-btn" id="${winId}-gc">Очистити витік RAM</button>
+                <button class="sys-btn" id="${winId}-kill" style="color:#a81d1d;font-weight:600;">Завершити процес (End Process)</button>
+              </div>
+            </div>
+          `;
+
+          const tbody = container.querySelector('tbody');
+          const ramLbl = container.querySelector(`#${winId}-ram-lbl`);
+          let selectedProc = null;
+
+          function refreshProcs() {
+            if (!document.getElementById(winId)) return;
+            ramLbl.textContent = `Commit Charge: ${Math.round(ramUsageMB)} MB / ${TOTAL_RAM_MB} MB (${TOTAL_RAM_KB_STR})`;
+            const procs = [
+              { name: 'explorer.exe', cpu: '14%', mem: `${Math.round(ramUsageMB * 0.42)} MB` },
+              { name: 'dce.exe', cpu: '19%', mem: `${Math.round(ramUsageMB * 0.31)} MB` },
+              { name: 'winfs.exe', cpu: '08%', mem: `${Math.round(ramUsageMB * 0.18)} MB` },
+              { name: 'sidebar.exe', cpu: '03%', mem: '68 MB' },
+              ...windowsState.map(w => ({ name: `${w.appType}.exe`, cpu: '02%', mem: '42 MB', winId: w.id }))
+            ];
+
+            tbody.innerHTML = procs.map((p, idx) => `
+              <tr data-pidx="${idx}" style="cursor:pointer;background:${selectedProc && selectedProc.name === p.name ? '#cbe2fa' : 'transparent'};">
+                <td style="padding:4px 6px;border-bottom:1px solid #eef3f8;">${p.name}</td>
+                <td style="padding:4px 6px;border-bottom:1px solid #eef3f8;">${p.cpu}</td>
+                <td style="padding:4px 6px;border-bottom:1px solid #eef3f8;">${p.mem}</td>
+              </tr>
+            `).join('');
+
+            tbody.querySelectorAll('tr').forEach((tr, idx) => {
+              tr.addEventListener('click', () => {
+                selectedProc = procs[idx];
+                refreshProcs();
+              });
+            });
+          }
+
+          container.querySelector(`#${winId}-gc`).addEventListener('click', () => {
+            ramUsageMB = Math.max(290, ramUsageMB - 260);
+            updateRamUI();
+            refreshProcs();
+          });
+
+          container.querySelector(`#${winId}-kill`).addEventListener('click', () => {
+            if (!selectedProc) return;
+            if (selectedProc.name === 'explorer.exe') {
+              triggerExplorerCrash('TASKMGR_TERMINATED_EXPLORER');
+            } else if (selectedProc.name === 'winfs.exe' || selectedProc.name === 'dce.exe') {
+              triggerBSOD('CRITICAL_OBJECT_TERMINATION', selectedProc.name.toUpperCase());
+            } else if (selectedProc.winId) {
+              closeWindow(selectedProc.winId);
+              selectedProc = null;
+              refreshProcs();
+            }
+          });
+
+          refreshProcs();
+          const timer = setInterval(() => {
+            if (!document.getElementById(winId)) clearInterval(timer);
+            else refreshProcs();
+          }, 1200);
+        }
+      });
+    }
+
+    // 7.10. WINDOWS MEDIA PLAYER 9/10 (LONGHORN EDITION — ЗІ ЗЛАМАНИМ ОНЛАЙН-РАДІО)
+    function openWMP(musicFile = null) {
+      notifyHistorian('wmp');
+      const track = musicFile || winfsFiles.find(f => f.type === 'music');
+
+      createWindow({
+        appType: 'wmp',
+        title: 'Windows Media Player — Longhorn Edition',
+        icon: Icons.wmp,
+        width: 470,
+        height: 350,
+        contentBuilder: (container, winId) => {
+          let isPlaying = false;
+          let step = 0;
+          let playInterval = null;
+
+          container.innerHTML = `
+            <div class="wmp-skin">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:#8cd0ff;">${track ? track.name : 'No Track Loaded'}</div>
+                  <div style="font-size:11px;opacity:0.8;">${track ? track.author : 'Windows Media Audio'}</div>
+                </div>
+                <button class="wmp-btn" id="${winId}-radio" style="font-size:11px;">📻 MSN Radio 2004</button>
+              </div>
+
+              <div class="wmp-visualizer" id="${winId}-vis">
+                ${Array.from({ length: 18 }).map(() => `<div class="wmp-bar"></div>`).join('')}
+              </div>
+
+              <div class="wmp-controls">
+                <button class="wmp-btn" id="${winId}-play">▶ Відтворити</button>
+                <button class="wmp-btn" id="${winId}-stop">⏹ Стоп</button>
+              </div>
+            </div>
+          `;
+
+          const bars = container.querySelectorAll('.wmp-bar');
+          const playBtn = container.querySelector(`#${winId}-play`);
+
+          function stopPlayback() {
+            isPlaying = false;
+            playBtn.textContent = '▶ Відтворити';
+            if (playInterval) clearInterval(playInterval);
+            bars.forEach(b => (b.style.height = '12%'));
+          }
+
+          playBtn.addEventListener('click', () => {
+            if (isPlaying) {
+              stopPlayback();
+              return;
+            }
+            isPlaying = true;
+            playBtn.textContent = '⏸ Пауза';
+            const notes = (track && track.melody) || [261.63, 329.63, 392.00, 523.25];
+
+            playInterval = setInterval(() => {
+              if (!document.getElementById(winId)) {
+                clearInterval(playInterval);
+                return;
+              }
+              SoundEngine.playNote(notes[step % notes.length]);
+              step++;
+              bars.forEach(b => {
+                b.style.height = Math.floor(18 + Math.random() * 78) + '%';
+              });
+            }, 340);
+          });
+
+          container.querySelector(`#${winId}-stop`).addEventListener('click', stopPlayback);
+
+          // Зламане онлайн-радіо 2004 року
+          container.querySelector(`#${winId}-radio`).addEventListener('click', () => {
+            stopPlayback();
+            showSysDialog(
+              'Windows Media Player — Error C00D1199',
+              `Windows Media Player cannot play the file because the server <code>radio.windowsmedia.com</code> is not responding (HTTP 503 / Legacy 2004 Protocol).`,
+              '🔇'
+            );
+          });
+        }
+      });
+    }
+
+    /* ==========================================================================
+       8. ІНІЦІАЛІЗАЦІЯ РОБОЧОГО СТОЛУ, SIDEBAR, START MENU ТА ЗАВАНТАЖЕННЯ
+       ========================================================================== */
+    function initDesktop() {
+      const desktopItems = [
+        { name: 'My Computer', icon: Icons.computer, action: () => openExplorer('My Computer') },
+        { name: 'My Documents', icon: Icons.folder, action: () => openExplorer('My Documents') },
+        { name: 'Recycle Bin', icon: Icons.recycle, action: () => showSysDialog('Recycle Bin', 'Кошик порожній. Видалені об’єкти WinFS відсутні.', '🗑️') },
+        { name: 'Internet Explorer', icon: Icons.ie, action: openIE },
+        { name: 'Notepad', icon: Icons.doc, action: () => openNotepad() },
+        { name: 'Command Prompt', icon: Icons.cmd, action: openCMD },
+        { name: 'Control Panel', icon: Icons.cp, action: openControlPanel },
+        { name: 'Windows Media Player', icon: Icons.wmp, action: () => openWMP() },
+        { name: 'Task Manager', icon: Icons.taskmgr, action: openTaskManager },
+        { name: 'ReadMe_4074.txt', icon: Icons.doc, action: () => openFileObject(winfsFiles[0]) }
+      ];
+
+      const container = document.getElementById('desktop-icons');
+      desktopItems.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'desktop-icon';
+        el.innerHTML = `${item.icon}<span>${item.name}</span>`;
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          container.querySelectorAll('.desktop-icon').forEach(x => x.classList.remove('selected'));
+          el.classList.add('selected');
+        });
+        el.addEventListener('dblclick', item.action);
+        container.appendChild(el);
+      });
+
+      document.getElementById('desktop').addEventListener('click', (e) => {
+        if (!e.target.closest('#start-menu') && !e.target.closest('#start-btn')) {
+          document.getElementById('start-menu').classList.remove('open');
+        }
+        container.querySelectorAll('.desktop-icon').forEach(x => x.classList.remove('selected'));
+      });
+    }
+
+    function initStartMenu() {
+      const startBtn = document.getElementById('start-btn');
+      const startMenu = document.getElementById('start-menu');
+
+      startBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startMenu.classList.toggle('open');
+      });
+
+      const leftItems = [
+        { name: 'Internet Explorer', sub: 'Build 6.05 Longhorn', icon: Icons.ie, action: openIE },
+        { name: 'Windows Explorer', sub: 'WinFS Navigation', icon: Icons.folder, action: () => openExplorer('My Computer') },
+        { name: 'Notepad', sub: 'Редактор тексту', icon: Icons.doc, action: () => openNotepad() },
+        { name: 'Command Prompt', sub: 'cmd.exe (6.0.4074)', icon: Icons.cmd, action: openCMD },
+        { name: 'Windows Media Player', sub: 'Longhorn Edition', icon: Icons.wmp, action: () => openWMP() },
+        { name: 'Task Manager', sub: 'Монітор витоку DCE', icon: Icons.taskmgr, action: openTaskManager }
+      ];
+
+      const rightPlaces = [
+        { name: 'My Documents', icon: Icons.folder, action: () => openExplorer('My Documents') },
+        { name: 'My Pictures', icon: Icons.picture, action: () => openExplorer('My Pictures') },
+        { name: 'My Music', icon: Icons.music, action: () => openExplorer('My Music') },
+        { name: 'All Documents (Stack)', icon: Icons.stack, action: () => openExplorer('Stack: All Documents') },
+        { name: 'My Computer', icon: Icons.computer, action: () => openExplorer('My Computer') },
+        { name: 'Control Panel', icon: Icons.cp, action: openControlPanel },
+        { name: 'Display Properties', icon: Icons.cp, action: openDisplayProperties },
+        { name: 'About Longhorn (Winver)', icon: Icons.sys, action: openWinver }
+      ];
+
+      const leftList = document.getElementById('sm-programs-list');
+      leftItems.forEach(it => {
+        const div = document.createElement('div');
+        div.className = 'sm-item';
+        div.innerHTML = `<div style="width:24px;height:24px;">${it.icon}</div><div><b>${it.name}</b><small>${it.sub}</small></div>`;
+        div.addEventListener('click', () => {
+          startMenu.classList.remove('open');
+          it.action();
+        });
+        leftList.appendChild(div);
+      });
+
+      const rightList = document.getElementById('sm-places-list');
+      rightPlaces.forEach(pl => {
+        const div = document.createElement('div');
+        div.className = 'sm-item';
+        div.innerHTML = `<div style="width:20px;height:20px;">${pl.icon}</div><span>${pl.name}</span>`;
+        div.addEventListener('click', () => {
+          startMenu.classList.remove('open');
+          pl.action();
+        });
+        rightList.appendChild(div);
+      });
+
+      // Пошук у меню Пуск
+      document.getElementById('sm-search-input').addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        leftList.querySelectorAll('.sm-item').forEach(el => {
+          el.style.display = el.textContent.toLowerCase().includes(q) ? 'flex' : 'none';
+        });
+      });
+
+      document.getElementById('btn-logoff').addEventListener('click', () => {
+        startMenu.classList.remove('open');
+        showBalloon('Windows Log Off', 'Збереження параметрів сеансу Longhorn... Сеанс оновлено.');
+      });
+
+      document.getElementById('btn-shutdown').addEventListener('click', () => {
+        startMenu.classList.remove('open');
+        const boot = document.getElementById('boot-screen');
+        document.getElementById('boot-stage-text').textContent = 'Windows is shutting down... Saving WinFS state...';
+        boot.style.display = 'flex';
+        boot.style.opacity = '1';
+        setTimeout(() => location.reload(), 1800);
+      });
+    }
+
+    function updateSidebarSearch() {
+      const box = document.getElementById('sb-search-box');
+      const res = document.getElementById('sb-search-results');
+      if (!box || !res) return;
+      const q = box.value.trim().toLowerCase();
+      if (!q) {
+        res.innerHTML = '';
+        return;
+      }
+      const matches = winfsFiles.filter(f =>
+        f.name.toLowerCase().includes(q) || (f.tags && f.tags.toLowerCase().includes(q))
+      );
+      res.innerHTML = matches.length
+        ? matches.map(m => `<div class="sb-search-item" data-fid="${m.id}">📄 ${m.name}</div>`).join('')
+        : '<div style="opacity:0.7;padding:2px;">Нічого не знайдено</div>';
+
+      res.querySelectorAll('.sb-search-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const file = winfsFiles.find(f => f.id === item.dataset.fid);
+          if (file) openFileObject(file);
+        });
+      });
+    }
+
+    function initSidebar() {
+      // Згортання/розгортання бічної панелі
+      const toggleBtn = document.getElementById('btn-toggle-sidebar');
+      toggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('sidebar-collapsed');
+        toggleBtn.textContent = document.body.classList.contains('sidebar-collapsed') ? '❮' : '❯';
+      });
+
+      // Аналоговий годинник на Canvas
+      const canvas = document.getElementById('clock-canvas');
+      const ctx = canvas.getContext('2d');
+
+      function drawClock() {
+        const now = new Date();
+        const r = canvas.width / 2;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.save();
+        ctx.translate(r, r);
+
+        // Циферблат у стилі Longhorn Glass
+        const grad = ctx.createRadialGradient(0, 0, 6, 0, 0, r - 4);
+        grad.addColorStop(0, '#1f3b5c');
+        grad.addColorStop(1, '#0c1929');
+        ctx.beginPath();
+        ctx.arc(0, 0, r - 4, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#8ec8ff';
+        ctx.stroke();
+
+        // Поділки
+        for (let i = 0; i < 12; i++) {
+          const ang = (i * Math.PI) / 6;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(ang) * (r - 12), Math.sin(ang) * (r - 12));
+          ctx.lineTo(Math.cos(ang) * (r - 7), Math.sin(ang) * (r - 7));
+          ctx.strokeStyle = '#d4ebff';
+          ctx.lineWidth = i % 3 === 0 ? 2 : 1;
+          ctx.stroke();
+        }
+
+        const sec = now.getSeconds();
+        const min = now.getMinutes();
+        const hr = now.getHours() % 12;
+
+        // Годинна стрілка
+        const hrAng = ((hr + min / 60) * Math.PI) / 6 - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(hrAng) * (r * 0.48), Math.sin(hrAng) * (r * 0.48));
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Хвилинна стрілка
+        const minAng = ((min + sec / 60) * Math.PI) / 30 - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(minAng) * (r * 0.68), Math.sin(minAng) * (r * 0.68));
+        ctx.strokeStyle = '#8cd0ff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Секундна стрілка
+        const secAng = (sec * Math.PI) / 30 - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(secAng) * (r * 0.76), Math.sin(secAng) * (r * 0.76));
+        ctx.strokeStyle = '#ff6b4a';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+
+        ctx.restore();
+
+        // Цифровий годинник у треї
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('tray-clock').textContent = `${hh}:${mm}`;
+      }
+
+      drawClock();
+      setInterval(drawClock, 1000);
+
+      // Слайд-шоу Phodeo у Sidebar
+      const slides = [
+        { title: 'Bliss 4074', bg: 'linear-gradient(180deg,#2578db 0%,#8bc7f8 55%,#56b324 56%,#2d6e0b 100%)' },
+        { title: 'Jade Glass', bg: 'linear-gradient(135deg,#122b47 0%,#3c7db8 50%,#143354 100%)' },
+        { title: 'WinHEC 2004', bg: 'radial-gradient(circle at 30% 30%,#5eb8ff,#102642)' }
+      ];
+      let slideIdx = 0;
+      const ssView = document.getElementById('sb-slideshow-view');
+      const ssTitle = document.getElementById('ss-title');
+
+      function renderSlide() {
+        ssView.style.background = slides[slideIdx].bg;
+        ssTitle.textContent = slides[slideIdx].title;
+      }
+      renderSlide();
+      setInterval(() => { slideIdx = (slideIdx + 1) % slides.length; renderSlide(); }, 4500);
+      document.getElementById('ss-prev').addEventListener('click', () => { slideIdx = (slideIdx - 1 + slides.length) % slides.length; renderSlide(); });
+      document.getElementById('ss-next').addEventListener('click', () => { slideIdx = (slideIdx + 1) % slides.length; renderSlide(); });
+
+      // Пошук WinFS у Sidebar
+      document.getElementById('sb-search-box').addEventListener('input', updateSidebarSearch);
+
+      // Швидкий запуск у Sidebar
+      const quickApps = [
+        { label: 'WinFS', icon: Icons.folder, fn: () => openExplorer('My Computer') },
+        { label: 'IE 6.05', icon: Icons.ie, fn: openIE },
+        { label: 'CMD', icon: Icons.cmd, fn: openCMD },
+        { label: 'Тема', icon: Icons.cp, fn: openDisplayProperties }
+      ];
+      const qlContainer = document.getElementById('sb-quick-launch');
+      quickApps.forEach(q => {
+        const b = document.createElement('button');
+        b.className = 'sb-quick-btn';
+        b.innerHTML = `<div style="width:20px;height:20px;margin-bottom:2px;">${q.icon}</div><span>${q.label}</span>`;
+        b.addEventListener('click', q.fn);
+        qlContainer.appendChild(b);
+      });
+
+      document.getElementById('tray-ram-badge').addEventListener('click', openTaskManager);
+    }
+
+    // Запуск після завантаження вікна (Boot Sequence -> Desktop)
+    window.onload = function () {
+      initGlobalWindowListeners();
+      initDesktop();
+      initStartMenu();
+      initSidebar();
+      updateRamUI();
+
+      const stages = [
+        'Loading WINFS.SYS & SQL Storage Service...',
+        'Starting Desktop Compositing Engine (DCE)...',
+        'Applying Theme "Jade" (Build 4074.idx02)...'
+      ];
+      let sIdx = 0;
+      const stageTimer = setInterval(() => {
+        sIdx++;
+        if (sIdx < stages.length) {
+          document.getElementById('boot-stage-text').textContent = stages[sIdx];
+        } else {
+          clearInterval(stageTimer);
+        }
+      }, 750);
+
+      setTimeout(() => {
+        const boot = document.getElementById('boot-screen');
+        boot.style.opacity = '0';
+        SoundEngine.startup();
+        setTimeout(() => {
+          boot.style.display = 'none';
+          showBalloon(
+            'Windows Longhorn Build 4074',
+            'Система завантажена. Натисніть на іконки або скористайтеся Longhorn Agent для історичної довідки.'
+          );
+        }, 600);
+      }, 2400);
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,2317 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Macintosh OS 7.5 — Retro AI Edition</title>
+  
+  <!-- Ретро-шрифти з підтримкою кирилиці -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --mac-bg-light: #c0c0c0;
+      --mac-bg-dark: #808080;
+      --platinum-base: #dddddd;
+      --platinum-light: #ffffff;
+      --platinum-mid: #bbbbbb;
+      --platinum-dark: #777777;
+      --platinum-border: #111111;
+      --highlight-blue: #000080;
+      --highlight-text: #ffffff;
+      --font-ui: 'JetBrains Mono', monospace;
+      --font-pixel: 'Press Start 2P', monospace;
+      --font-doc: 'Courier Prime', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #141416;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      color: #000;
+    }
+
+    /* Рамка ЕПТ-монітора (CRT Bezel) */
+    #crt-monitor {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      max-width: 100%;
+      max-height: 100%;
+      background-color: #8c8c8c;
+      /* Класичний піксельний шаховий патерн Mac OS */
+      background-image: 
+        linear-gradient(45deg, #b8b8b8 25%, transparent 25%), 
+        linear-gradient(-45deg, #b8b8b8 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #b8b8b8 75%), 
+        linear-gradient(-45deg, transparent 75%, #b8b8b8 75%);
+      background-size: 2px 2px;
+      background-position: 0 0, 0 1px, 1px -1px, -1px 0px;
+      border-radius: 18px;
+      box-shadow: 
+        inset 0 0 0 3px #000,
+        inset 0 0 28px rgba(0, 0, 0, 0.35),
+        0 0 0 8px #262522;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Легкий ефект CRT-ліній (можна перемикати) */
+    #crt-scanlines {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      z-index: 99999;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.08) 50%
+      );
+      background-size: 100% 3px;
+      opacity: 0.65;
+      transition: opacity 0.2s;
+    }
+    #crt-scanlines.off {
+      opacity: 0;
+    }
+
+    /* ==================== ЕКРАН ЗАВАНТАЖЕННЯ (BOOT SCREEN) ==================== */
+    #boot-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 50000;
+      background-color: #9e9e9e;
+      background-image: 
+        linear-gradient(45deg, #bfbfbf 25%, transparent 25%), 
+        linear-gradient(-45deg, #bfbfbf 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #bfbfbf 75%), 
+        linear-gradient(-45deg, transparent 75%, #bfbfbf 75%);
+      background-size: 2px 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .welcome-box {
+      width: 100%;
+      max-width: 440px;
+      background: #efefef;
+      border: 2px solid #000;
+      box-shadow: 
+        inset 2px 2px 0 #fff,
+        inset -2px -2px 0 #888,
+        6px 6px 0 rgba(0, 0, 0, 0.45);
+      padding: 24px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .welcome-title {
+      font-family: var(--font-doc);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #000;
+      margin: 0;
+    }
+
+    .boot-progress-outer {
+      width: 82%;
+      height: 16px;
+      background: #fff;
+      border: 2px solid #000;
+      box-shadow: inset 1px 1px 0 #777;
+      padding: 2px;
+    }
+
+    .boot-progress-inner {
+      height: 100%;
+      width: 0%;
+      background: repeating-linear-gradient(
+        -45deg,
+        #000080,
+        #000080 6px,
+        #4a6cf7 6px,
+        #4a6cf7 12px
+      );
+      transition: width 0.15s linear;
+    }
+
+    .boot-subtext {
+      font-size: 11px;
+      color: #333;
+    }
+
+    /* ==================== ВЕРХНЄ МЕНЮ (MENU BAR) ==================== */
+    #menu-bar {
+      position: relative;
+      z-index: 10000;
+      height: 26px;
+      background: #ffffff;
+      border-bottom: 2px solid #000000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      flex-shrink: 0;
+    }
+
+    .menu-left, .menu-right {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+
+    .menu-item {
+      position: relative;
+      height: 100%;
+      padding: 0 9px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .menu-item:hover, .menu-item.active {
+      background-color: #000080;
+      color: #ffffff;
+    }
+
+    .menu-item.apple-menu {
+      padding: 0 10px;
+    }
+
+    /* Випадаючі меню */
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 24px;
+      left: 0;
+      min-width: 215px;
+      background: #efefef;
+      border: 2px solid #000;
+      box-shadow: 
+        inset 1px 1px 0 #fff,
+        inset -1px -1px 0 #888,
+        4px 4px 0 rgba(0, 0, 0, 0.4);
+      color: #000;
+      z-index: 10005;
+      padding: 3px 0;
+      font-weight: 600;
+    }
+
+    .menu-right .dropdown-menu {
+      left: auto;
+      right: 0;
+    }
+
+    .menu-item.active .dropdown-menu {
+      display: block;
+    }
+
+    .dropdown-entry {
+      padding: 5px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .dropdown-entry:hover {
+      background: #000080;
+      color: #fff;
+    }
+
+    .dropdown-entry.disabled {
+      color: #888;
+      pointer-events: none;
+    }
+
+    .dropdown-sep {
+      height: 1px;
+      background: #888;
+      border-bottom: 1px solid #fff;
+      margin: 3px 2px;
+    }
+
+    .shortcut {
+      font-size: 10px;
+      opacity: 0.75;
+    }
+
+    #clock-display {
+      font-weight: 700;
+      font-size: 12px;
+      padding: 0 8px;
+      cursor: pointer;
+    }
+
+    #sound-toggle {
+      cursor: pointer;
+      padding: 2px 6px;
+      font-size: 12px;
+      border-radius: 3px;
+    }
+    #sound-toggle:hover {
+      background: #ddd;
+    }
+
+    /* ==================== РОБОЧИЙ СТІЛ (DESKTOP) ==================== */
+    #desktop {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* Іконки робочого столу справа */
+    #desktop-icons {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      flex-wrap: wrap-reverse;
+      align-content: flex-end;
+      gap: 14px;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .desktop-icon {
+      pointer-events: auto;
+      width: 84px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 2px;
+    }
+
+    .desktop-icon .icon-graphic {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter 0.08s;
+    }
+
+    .desktop-icon .icon-label {
+      background: #ffffff;
+      color: #000000;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 5px;
+      text-align: center;
+      line-height: 1.2;
+      border: 1px solid transparent;
+      word-break: break-word;
+    }
+
+    /* Інверсія при виділенні іконки */
+    .desktop-icon.selected .icon-graphic {
+      filter: invert(1) contrast(1.2);
+    }
+
+    .desktop-icon.selected .icon-label {
+      background: #000000;
+      color: #ffffff;
+      border: 1px dotted #ffffff;
+    }
+
+    #trash-icon-wrapper {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      z-index: 10;
+    }
+
+    /* ==================== КЛАСИЧНІ ВІКНА (PLATINUM / MAC OS 7.5) ==================== */
+    .mac-window {
+      position: absolute;
+      background: var(--platinum-base);
+      border: 2px solid #000000;
+      box-shadow: 
+        inset 1px 1px 0 #ffffff,
+        inset -1px -1px 0 #808080,
+        4px 4px 0 rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      min-width: 240px;
+      min-height: 140px;
+      max-width: calc(100vw - 16px);
+      max-height: calc(100vh - 42px);
+    }
+
+    /* Заголовок вікна з фірмовими смужками (Pinstripes) */
+    .window-titlebar {
+      height: 24px;
+      background: #d4d4d4;
+      border-bottom: 2px solid #000000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5px;
+      cursor: grab;
+      flex-shrink: 0;
+    }
+
+    .window-titlebar:active {
+      cursor: grabbing;
+    }
+
+    /* Смужки активного вікна */
+    .mac-window.active .window-titlebar {
+      background: #e4e4e4;
+    }
+
+    .titlebar-stripes {
+      flex: 1;
+      height: 13px;
+      margin: 0 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mac-window.active .titlebar-stripes {
+      background: repeating-linear-gradient(
+        to bottom,
+        #000000 0px,
+        #000000 1px,
+        #ffffff 1px,
+        #ffffff 2px
+      );
+    }
+
+    .window-title-text {
+      background: #e4e4e4;
+      padding: 0 8px;
+      font-weight: 800;
+      font-size: 12px;
+      color: #555;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+
+    .mac-window.active .window-title-text {
+      color: #000000;
+    }
+
+    /* Кнопки керування вікном */
+    .win-btn {
+      width: 14px;
+      height: 14px;
+      background: #e8e8e8;
+      border: 1px solid #000;
+      box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #777;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 0;
+    }
+
+    .win-btn:active {
+      background: #000;
+      box-shadow: none;
+    }
+
+    .win-btn-zoom-inner {
+      width: 7px;
+      height: 7px;
+      border-right: 1px solid #000;
+      border-bottom: 1px solid #000;
+      margin-top: -3px;
+      margin-left: -3px;
+    }
+
+    .win-btn-collapse-inner {
+      width: 9px;
+      height: 3px;
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+    }
+
+    .window-controls-right {
+      display: flex;
+      gap: 3px;
+    }
+
+    /* Згорнуте вікно (WindowShade) */
+    .mac-window.collapsed {
+      height: 26px !important;
+      min-height: 26px !important;
+    }
+    .mac-window.collapsed .window-body,
+    .mac-window.collapsed .window-statusbar {
+      display: none !important;
+    }
+
+    /* Внутрішній контент вікна */
+    .window-body {
+      flex: 1;
+      margin: 4px;
+      background: #ffffff;
+      border: 2px solid #000000;
+      box-shadow: inset 1px 1px 0 #888;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .window-body.platinum-panel {
+      background: #dddddd;
+      border: none;
+      box-shadow: none;
+      margin: 6px;
+    }
+
+    .window-statusbar {
+      height: 20px;
+      background: #e5e5e5;
+      border-top: 1px solid #888;
+      padding: 0 8px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    /* Класичні кнопки Platinum */
+    .retro-btn {
+      background: #e6e6e6;
+      border: 2px solid #000;
+      border-radius: 4px;
+      box-shadow: 
+        inset 1px 1px 0 #ffffff,
+        inset -1px -1px 0 #888888;
+      padding: 4px 10px;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      color: #000;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .retro-btn:hover {
+      background: #f2f2f2;
+    }
+
+    .retro-btn:active {
+      background: #000000;
+      color: #ffffff;
+      box-shadow: none;
+    }
+
+    .retro-btn.primary {
+      box-shadow: 
+        0 0 0 2px #000,
+        inset 1px 1px 0 #ffffff,
+        inset -1px -1px 0 #888888;
+    }
+
+    /* ==================== ПРОГРАМА 1: MACAI ASSISTANT ==================== */
+    .ai-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: #f5f5f5;
+    }
+
+    .ai-header-banner {
+      background: #e2e2e2;
+      border-bottom: 2px solid #000;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .ai-mascot-box {
+      width: 46px;
+      height: 46px;
+      background: #fff;
+      border: 2px solid #000;
+      box-shadow: inset 1px 1px 0 #999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ai-status-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ai-status-title {
+      font-weight: 800;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-led {
+      width: 8px;
+      height: 8px;
+      background: #00aa00;
+      border: 1px solid #000;
+      display: inline-block;
+    }
+    .ai-led.thinking {
+      background: #ff9900;
+      animation: blinkLed 0.3s infinite alternate;
+    }
+
+    @keyframes blinkLed {
+      from { opacity: 1; }
+      to { opacity: 0.2; }
+    }
+
+    .ai-status-sub {
+      font-size: 11px;
+      color: #333;
+      margin-top: 2px;
+    }
+
+    .ai-quick-bar {
+      background: #dcdcdc;
+      border-bottom: 1px solid #888;
+      padding: 6px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .ai-chip {
+      background: #fff;
+      border: 1px solid #000;
+      box-shadow: 1px 1px 0 #000;
+      padding: 3px 7px;
+      font-size: 10.5px;
+      font-weight: 700;
+      font-family: var(--font-ui);
+      cursor: pointer;
+    }
+    .ai-chip:hover {
+      background: #000080;
+      color: #fff;
+    }
+    .ai-chip:active {
+      transform: translate(1px, 1px);
+      box-shadow: none;
+    }
+
+    .ai-chat-log {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #ffffff;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .chat-msg {
+      max-width: 90%;
+      padding: 8px 10px;
+      border: 1px solid #000;
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .chat-msg.ai {
+      align-self: flex-start;
+      background: #efefef;
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    .chat-msg.user {
+      align-self: flex-end;
+      background: #000080;
+      color: #ffffff;
+      box-shadow: 2px 2px 0 #555;
+    }
+
+    .chat-sender {
+      font-size: 10px;
+      font-weight: 800;
+      margin-bottom: 3px;
+      opacity: 0.8;
+      text-transform: uppercase;
+    }
+
+    .ai-input-bar {
+      display: flex;
+      gap: 6px;
+      padding: 8px;
+      background: #dddddd;
+      border-top: 2px solid #000;
+      flex-shrink: 0;
+    }
+
+    .retro-input {
+      flex: 1;
+      background: #fff;
+      border: 2px solid #000;
+      box-shadow: inset 1px 1px 0 #888;
+      padding: 5px 8px;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      color: #000;
+      outline: none;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    /* ==================== ПРОГРАМА 2: SIMPLETEXT ==================== */
+    .simpletext-toolbar {
+      background: #e2e2e2;
+      border-bottom: 1px solid #000;
+      padding: 5px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .simpletext-area {
+      flex: 1;
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      padding: 12px;
+      font-family: var(--font-doc);
+      font-size: 14px;
+      line-height: 1.5;
+      color: #000;
+      background: #fff;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    /* ==================== ПРОГРАМА 3: CALCULATOR ==================== */
+    .calc-container {
+      background: #555555;
+      padding: 10px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .calc-display {
+      background: #e8f0e4;
+      border: 2px solid #000;
+      box-shadow: inset 2px 2px 0 #889984;
+      padding: 6px 10px;
+      text-align: right;
+      font-family: var(--font-ui);
+      font-size: 20px;
+      font-weight: 800;
+      color: #111;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      flex: 1;
+    }
+
+    .calc-key {
+      background: #e2e2e2;
+      border: 2px solid #000;
+      box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #777, 1px 1px 0 #000;
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calc-key:active {
+      background: #000;
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .calc-key.op {
+      background: #cccccc;
+    }
+
+    .calc-key.eq {
+      grid-row: span 2;
+      background: #d0d8e8;
+    }
+
+    .calc-key.zero {
+      grid-column: span 2;
+    }
+
+    /* ==================== ПРОГРАМА 4: MACINTOSH HD (FINDER) ==================== */
+    .finder-subheader {
+      background: #e6e6e6;
+      border-bottom: 1px solid #000;
+      padding: 3px 10px;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .finder-grid {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+      gap: 14px;
+      align-content: start;
+      flex: 1;
+    }
+
+    .finder-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .finder-item.selected .icon-graphic {
+      filter: invert(1);
+    }
+    .finder-item.selected .finder-label {
+      background: #000080;
+      color: #fff;
+    }
+
+    .finder-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      padding: 1px 4px;
+      word-break: break-word;
+    }
+
+    /* ==================== ПРОГРАМА 5: PUZZLE 15 (МІНІ-ГРА) ==================== */
+    .puzzle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 12px;
+      background: #d8d8d8;
+      gap: 10px;
+    }
+
+    .puzzle-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+      background: #000;
+      border: 3px solid #000;
+      padding: 3px;
+      width: 224px;
+      height: 224px;
+    }
+
+    .puzzle-tile {
+      background: #f4f4f4;
+      box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #888;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #000;
+    }
+
+    .puzzle-tile:hover {
+      background: #ffffff;
+    }
+
+    .puzzle-tile.empty {
+      background: #444444;
+      box-shadow: inset 2px 2px 0 #222;
+      cursor: default;
+    }
+
+    /* ==================== ДІАЛОГОВІ ВІКНА (ABOUT / ALERT) ==================== */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.25);
+      z-index: 40000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .mac-dialog {
+      width: 100%;
+      max-width: 390px;
+      background: #efefef;
+      border: 2px solid #000;
+      box-shadow: 
+        inset 2px 2px 0 #fff,
+        inset -2px -2px 0 #888,
+        6px 6px 0 rgba(0,0,0,0.45);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Адаптація для мобільних екранів */
+    @media (max-width: 640px) {
+      #crt-monitor {
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .menu-item {
+        padding: 0 6px;
+        font-size: 11px;
+      }
+      .desktop-icon {
+        width: 72px;
+      }
+      .mac-window {
+        max-width: calc(100vw - 8px);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="crt-monitor">
+  <!-- CRT Scanlines overlay -->
+  <div id="crt-scanlines"></div>
+
+  <!-- ==================== 1. ЕКРАН ЗАВАНТАЖЕННЯ ==================== -->
+  <div id="boot-screen">
+    <div class="welcome-box">
+      <!-- Піксельний Happy Mac -->
+      <svg width="56" height="64" viewBox="0 0 28 32" shape-rendering="crispEdges">
+        <rect x="3" y="1" width="22" height="26" fill="#000"/>
+        <rect x="4" y="2" width="20" height="24" fill="#e6e2d3"/>
+        <rect x="6" y="4" width="16" height="12" fill="#000"/>
+        <rect x="7" y="5" width="14" height="10" fill="#b8d0e8"/>
+        <!-- Очі та усмішка -->
+        <rect x="10" y="7" width="2" height="2" fill="#000"/>
+        <rect x="16" y="7" width="2" height="2" fill="#000"/>
+        <rect x="13" y="8" width="2" height="3" fill="#000"/>
+        <rect x="10" y="11" width="1" height="1" fill="#000"/>
+        <rect x="11" y="12" width="6" height="1" fill="#000"/>
+        <rect x="17" y="11" width="1" height="1" fill="#000"/>
+        <!-- Дисковод -->
+        <rect x="14" y="20" width="8" height="2" fill="#000"/>
+        <rect x="6" y="20" width="2" height="2" fill="#22aa22"/>
+        <!-- Підставка -->
+        <rect x="5" y="27" width="18" height="4" fill="#000"/>
+        <rect x="6" y="27" width="16" height="3" fill="#c8c4b4"/>
+      </svg>
+
+      <h1 class="welcome-title">Welcome to Macintosh</h1>
+
+      <div class="boot-progress-outer">
+        <div class="boot-progress-inner" id="boot-progress"></div>
+      </div>
+
+      <div class="boot-subtext" id="boot-status">Завантаження Mac OS 7.5.5 та ядра MacAI...</div>
+      <button class="retro-btn" id="boot-skip-btn" style="font-size: 10px; padding: 3px 8px;">Запустити зараз ▶</button>
+    </div>
+  </div>
+
+  <!-- ==================== 2. ВЕРХНЄ МЕНЮ (MENU BAR) ==================== -->
+  <header id="menu-bar">
+    <div class="menu-left">
+      <!-- Меню Apple -->
+      <div class="menu-item apple-menu" data-menu="apple">
+        <!-- Кольорове ретро-яблуко 1977–1998 -->
+        <svg width="14" height="16" viewBox="0 0 14 16" shape-rendering="crispEdges">
+          <rect x="7" y="0" width="2" height="2" fill="#61bb46"/>
+          <rect x="6" y="2" width="2" height="1" fill="#61bb46"/>
+          <rect x="3" y="3" width="8" height="2" fill="#61bb46"/>
+          <rect x="2" y="5" width="9" height="2" fill="#fdb827"/>
+          <rect x="2" y="7" width="8" height="2" fill="#f5821f"/>
+          <rect x="2" y="9" width="9" height="2" fill="#e03a3e"/>
+          <rect x="3" y="11" width="9" height="2" fill="#963d97"/>
+          <rect x="4" y="13" width="3" height="2" fill="#009ddc"/>
+          <rect x="8" y="13" width="3" height="2" fill="#009ddc"/>
+        </svg>
+        <div class="dropdown-menu">
+          <div class="dropdown-entry" onclick="openAboutDialog()">Про цей Macintosh...</div>
+          <div class="dropdown-sep"></div>
+          <div class="dropdown-entry" onclick="openApp('ai')"><span>🤖 MacAI Assistant</span></div>
+          <div class="dropdown-entry" onclick="openApp('simpletext')"><span>📝 SimpleText</span></div>
+          <div class="dropdown-entry" onclick="openApp('calculator')"><span>🧮 Calculator</span></div>
+          <div class="dropdown-entry" onclick="openApp('puzzle')"><span>🧩 Puzzle 15</span></div>
+          <div class="dropdown-entry" onclick="openApp('hd')"><span>💾 Macintosh HD</span></div>
+        </div>
+      </div>
+
+      <!-- File -->
+      <div class="menu-item" data-menu="file">
+        <span>File</span>
+        <div class="dropdown-menu">
+          <div class="dropdown-entry" onclick="newSimpleTextDoc()"><span>Новий документ</span><span class="shortcut">⌘N</span></div>
+          <div class="dropdown-entry" onclick="openApp('hd')"><span>Відкрити Macintosh HD</span><span class="shortcut">⌘O</span></div>
+          <div class="dropdown-sep"></div>
+          <div class="dropdown-entry" onclick="closeActiveWindow()"><span>Закрити активне вікно</span><span class="shortcut">⌘W</span></div>
+        </div>
+      </div>
+
+      <!-- Edit -->
+      <div class="menu-item" data-menu="edit">
+        <span>Edit</span>
+        <div class="dropdown-menu">
+          <div class="dropdown-entry" onclick="copySimpleText()"><span>Копіювати текст</span><span class="shortcut">⌘C</span></div>
+          <div class="dropdown-entry" onclick="clearSimpleText()"><span>Очистити SimpleText</span></div>
+          <div class="dropdown-sep"></div>
+          <div class="dropdown-entry" onclick="triggerAiContinue()"><span>✨ ШІ: Продовжити текст</span></div>
+        </div>
+      </div>
+
+      <!-- View -->
+      <div class="menu-item" data-menu="view">
+        <span>View</span>
+        <div class="dropdown-menu">
+          <div class="dropdown-entry" onclick="cleanUpDesktop()"><span>Упорядкувати іконки</span></div>
+          <div class="dropdown-entry" onclick="cascadeWindows()"><span>Каскад вікон</span></div>
+          <div class="dropdown-sep"></div>
+          <div class="dropdown-entry" onclick="toggleScanlines()"><span id="scanline-menu-label">✓ Ефект ЕПТ-ліній</span></div>
+        </div>
+      </div>
+
+      <!-- Special -->
+      <div class="menu-item" data-menu="special">
+        <span>Special</span>
+        <div class="dropdown-menu">
+          <div class="dropdown-entry" onclick="emptyTrash()"><span>Очистити кошик (Empty Trash)</span></div>
+          <div class="dropdown-sep"></div>
+          <div class="dropdown-entry" onclick="restartMac()"><span>Перезавантажити (Restart)</span></div>
+        </div>
+      </div>
+
+      <!-- AI Help -->
+      <div class="menu-item" data-menu="aihelp">
+        <span>AI Help</span>
+        <div class="dropdown-menu">
+          <div class="dropdown-entry" onclick="askAiFromMenu('Розкажи про 1994 рік')"><span>📅 Розкажи про 1994 рік</span></div>
+          <div class="dropdown-entry" onclick="askAiFromMenu('Напиши вірш у стилі кіберпанк')"><span>🌆 Вірш у стилі кіберпанк</span></div>
+          <div class="dropdown-entry" onclick="askAiFromMenu('Згенеруй ідею стартапу')"><span>💡 Ідея стартапу з 90-х</span></div>
+          <div class="dropdown-entry" onclick="askAiFromMenu('Діагностика системи')"><span>🔧 Діагностика системи</span></div>
+          <div class="dropdown-sep"></div>
+          <div class="dropdown-entry" onclick="askAiFromMenu('Як користуватися цією системою?')"><span>❓ Довідка Mac OS</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-right">
+      <div id="sound-toggle" title="Увімкнути/вимкнути ретро-звуки" onclick="toggleSound()">🔊</div>
+      <div id="clock-display" title="Системний годинник">12:00</div>
+      <!-- Перемикач програм -->
+      <div class="menu-item" data-menu="switcher" title="Активні програми">
+        <svg width="14" height="14" viewBox="0 0 16 16" shape-rendering="crispEdges">
+          <rect x="1" y="2" width="10" height="8" fill="#fff" stroke="#000" stroke-width="1.5"/>
+          <rect x="5" y="6" width="10" height="8" fill="#000080" stroke="#000" stroke-width="1.5"/>
+        </svg>
+        <div class="dropdown-menu" id="app-switcher-menu">
+          <div class="dropdown-entry" onclick="openApp('hd')"><span>Finder</span></div>
+          <div class="dropdown-entry" onclick="openApp('ai')"><span>MacAI Assistant</span></div>
+          <div class="dropdown-entry" onclick="openApp('simpletext')"><span>SimpleText</span></div>
+          <div class="dropdown-entry" onclick="openApp('calculator')"><span>Calculator</span></div>
+          <div class="dropdown-entry" onclick="openApp('puzzle')"><span>Puzzle 15</span></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== 3. РОБОЧИЙ СТІЛ ==================== -->
+  <main id="desktop">
+    <!-- Іконки робочого столу (справа) -->
+    <div id="desktop-icons">
+      <!-- Macintosh HD -->
+      <div class="desktop-icon" data-app="hd">
+        <div class="icon-graphic">
+          <svg width="40" height="36" viewBox="0 0 20 18" shape-rendering="crispEdges">
+            <rect x="1" y="3" width="18" height="12" fill="#000"/>
+            <rect x="2" y="4" width="16" height="10" fill="#e8e8e8"/>
+            <rect x="2" y="10" width="16" height="4" fill="#b0b0b0"/>
+            <rect x="14" y="11" width="2" height="2" fill="#00aa00"/>
+            <rect x="4" y="6" width="6" height="1" fill="#666"/>
+          </svg>
+        </div>
+        <span class="icon-label">Macintosh HD</span>
+      </div>
+
+      <!-- MacAI Assistant -->
+      <div class="desktop-icon" data-app="ai">
+        <div class="icon-graphic">
+          <svg width="40" height="40" viewBox="0 0 20 20" shape-rendering="crispEdges">
+            <rect x="2" y="1" width="16" height="15" fill="#000"/>
+            <rect x="3" y="2" width="14" height="13" fill="#e8e4d8"/>
+            <rect x="4" y="3" width="12" height="8" fill="#000080"/>
+            <rect x="6" y="5" width="2" height="2" fill="#00ffcc"/>
+            <rect x="12" y="5" width="2" height="2" fill="#00ffcc"/>
+            <rect x="7" y="8" width="6" height="1" fill="#00ffcc"/>
+            <rect x="6" y="13" width="8" height="1" fill="#000"/>
+            <rect x="4" y="16" width="12" height="3" fill="#000"/>
+            <rect x="5" y="16" width="10" height="2" fill="#c0c0c0"/>
+          </svg>
+        </div>
+        <span class="icon-label">MacAI Assistant</span>
+      </div>
+
+      <!-- SimpleText -->
+      <div class="desktop-icon" data-app="simpletext">
+        <div class="icon-graphic">
+          <svg width="38" height="40" viewBox="0 0 19 20" shape-rendering="crispEdges">
+            <polygon points="2,1 13,1 17,5 17,19 2,19" fill="#fff" stroke="#000" stroke-width="1.5"/>
+            <polyline points="12,1 12,6 17,6" fill="none" stroke="#000" stroke-width="1.5"/>
+            <rect x="5" y="8" width="9" height="1" fill="#000"/>
+            <rect x="5" y="11" width="9" height="1" fill="#000"/>
+            <rect x="5" y="14" width="6" height="1" fill="#000"/>
+          </svg>
+        </div>
+        <span class="icon-label">SimpleText</span>
+      </div>
+
+      <!-- Calculator -->
+      <div class="desktop-icon" data-app="calculator">
+        <div class="icon-graphic">
+          <svg width="36" height="40" viewBox="0 0 18 20" shape-rendering="crispEdges">
+            <rect x="2" y="1" width="14" height="18" fill="#000"/>
+            <rect x="3" y="2" width="12" height="16" fill="#777"/>
+            <rect x="4" y="3" width="10" height="4" fill="#d8e8d0"/>
+            <rect x="4" y="9" width="2" height="2" fill="#fff"/>
+            <rect x="8" y="9" width="2" height="2" fill="#fff"/>
+            <rect x="12" y="9" width="2" height="2" fill="#fff"/>
+            <rect x="4" y="12" width="2" height="2" fill="#fff"/>
+            <rect x="8" y="12" width="2" height="2" fill="#fff"/>
+            <rect x="12" y="12" width="2" height="2" fill="#fff"/>
+            <rect x="4" y="15" width="6" height="2" fill="#fff"/>
+            <rect x="12" y="15" width="2" height="2" fill="#ffcc00"/>
+          </svg>
+        </div>
+        <span class="icon-label">Calculator</span>
+      </div>
+
+      <!-- Puzzle 15 -->
+      <div class="desktop-icon" data-app="puzzle">
+        <div class="icon-graphic">
+          <svg width="38" height="38" viewBox="0 0 19 19" shape-rendering="crispEdges">
+            <rect x="1" y="1" width="17" height="17" fill="#000"/>
+            <rect x="2" y="2" width="7" height="7" fill="#ffcc00"/>
+            <rect x="10" y="2" width="7" height="7" fill="#009ddc"/>
+            <rect x="2" y="10" width="7" height="7" fill="#61bb46"/>
+            <rect x="10" y="10" width="7" height="7" fill="#333"/>
+          </svg>
+        </div>
+        <span class="icon-label">Puzzle 15</span>
+      </div>
+    </div>
+
+    <!-- Кошик знизу справа -->
+    <div id="trash-icon-wrapper">
+      <div class="desktop-icon" id="trash-desktop-icon" data-app="trash">
+        <div class="icon-graphic" id="trash-svg-box">
+          <!-- Порожній кошик -->
+          <svg width="36" height="40" viewBox="0 0 18 20" shape-rendering="crispEdges">
+            <rect x="6" y="1" width="6" height="2" fill="#000"/>
+            <rect x="3" y="3" width="12" height="2" fill="#000"/>
+            <rect x="4" y="5" width="10" height="14" fill="#000"/>
+            <rect x="5" y="6" width="8" height="12" fill="#e6e6e6"/>
+            <rect x="7" y="7" width="1" height="9" fill="#666"/>
+            <rect x="10" y="7" width="1" height="9" fill="#666"/>
+          </svg>
+        </div>
+        <span class="icon-label">Trash</span>
+      </div>
+    </div>
+
+    <!-- ==================== ВІКНО 1: MACAI ASSISTANT ==================== -->
+    <div class="mac-window active" id="win-ai" style="width: 470px; height: 440px; top: 24px; left: 24px; z-index: 105;">
+      <div class="window-titlebar">
+        <button class="win-btn" title="Закрити" onclick="closeWindow('win-ai')"></button>
+        <div class="titlebar-stripes">
+          <span class="window-title-text">MacAI Assistant 1.0</span>
+        </div>
+        <div class="window-controls-right">
+          <button class="win-btn" title="Згорнути" onclick="toggleCollapse('win-ai')">
+            <div class="win-btn-collapse-inner"></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="window-body">
+        <div class="ai-layout">
+          <!-- Верхня панель з маскотом Happy Mac -->
+          <div class="ai-header-banner">
+            <div class="ai-mascot-box" id="ai-mascot">
+              <svg width="34" height="38" viewBox="0 0 17 19" shape-rendering="crispEdges">
+                <rect x="1" y="0" width="15" height="16" fill="#000"/>
+                <rect x="2" y="1" width="13" height="14" fill="#ebe7d8"/>
+                <rect x="3" y="2" width="11" height="8" fill="#000"/>
+                <rect x="4" y="3" width="9" height="6" fill="#b7d4ec"/>
+                <!-- Очі -->
+                <rect id="mac-eye-l" x="6" y="4" width="1" height="2" fill="#000"/>
+                <rect id="mac-eye-r" x="10" y="4" width="1" height="2" fill="#000"/>
+                <!-- Рот -->
+                <rect id="mac-mouth" x="6" y="7" width="5" height="1" fill="#000"/>
+                <!-- Кнопка та дисковод -->
+                <rect x="9" y="12" width="5" height="1" fill="#000"/>
+                <rect x="4" y="12" width="1" height="1" fill="#00aa00"/>
+                <rect x="2" y="16" width="13" height="3" fill="#000"/>
+                <rect x="3" y="16" width="11" height="2" fill="#c4c0b0"/>
+              </svg>
+            </div>
+            <div class="ai-status-info">
+              <div class="ai-status-title">
+                <span class="ai-led" id="ai-status-led"></span>
+                <span>Нейромережа Newton-95 (68040 / 33 MHz)</span>
+              </div>
+              <div class="ai-status-sub" id="ai-status-text">Готовий до роботи. Запитайте будь-що українською!</div>
+            </div>
+          </div>
+
+          <!-- Швидкі команди -->
+          <div class="ai-quick-bar">
+            <button class="ai-chip" onclick="sendAiPrompt('Розкажи про 1994 рік')">📅 Розкажи про 1994 рік</button>
+            <button class="ai-chip" onclick="sendAiPrompt('Напиши вірш у стилі кіберпанк')">🌆 Вірш у стилі кіберпанк</button>
+            <button class="ai-chip" onclick="sendAiPrompt('Згенеруй ідею стартапу')">💡 Згенеруй ідею стартапу</button>
+            <button class="ai-chip" onclick="sendAiPrompt('Діагностика системи')">🔧 Діагностика системи</button>
+          </div>
+
+          <!-- Історія повідомлень -->
+          <div class="ai-chat-log" id="ai-chat-log"></div>
+
+          <!-- Поле вводу -->
+          <form class="ai-input-bar" onsubmit="handleAiSubmit(event)">
+            <input type="text" id="ai-input" class="retro-input" placeholder="Введіть запит для MacAI..." autocomplete="off">
+            <button type="submit" class="retro-btn primary">Надіслати</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== ВІКНО 2: SIMPLETEXT ==================== -->
+    <div class="mac-window" id="win-simpletext" style="width: 430px; height: 340px; top: 75px; left: 130px; display: none;">
+      <div class="window-titlebar">
+        <button class="win-btn" title="Закрити" onclick="closeWindow('win-simpletext')"></button>
+        <div class="titlebar-stripes">
+          <span class="window-title-text" id="simpletext-title">SimpleText — Без назви</span>
+        </div>
+        <div class="window-controls-right">
+          <button class="win-btn" title="Згорнути" onclick="toggleCollapse('win-simpletext')">
+            <div class="win-btn-collapse-inner"></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="window-body">
+        <div class="simpletext-toolbar">
+          <button class="retro-btn" onclick="triggerAiContinue()">✨ ШІ: Продовжити текст</button>
+          <button class="retro-btn" onclick="saveDocToTrashOrHd()">💾 Зберегти на HD</button>
+          <button class="retro-btn" onclick="clearSimpleText()">🗑️ Очистити</button>
+        </div>
+        <textarea id="simpletext-editor" class="simpletext-area" placeholder="Почніть друкувати текст тут або натисніть «ШІ: Продовжити текст»..."></textarea>
+      </div>
+
+      <div class="window-statusbar">
+        <span id="simpletext-stats">Символів: 0 | Слів: 0</span>
+        <span>Шрифт: Courier Prime 14pt</span>
+      </div>
+    </div>
+
+    <!-- ==================== ВІКНО 3: CALCULATOR ==================== -->
+    <div class="mac-window" id="win-calculator" style="width: 245px; height: 315px; top: 90px; left: 320px; display: none;">
+      <div class="window-titlebar">
+        <button class="win-btn" title="Закрити" onclick="closeWindow('win-calculator')"></button>
+        <div class="titlebar-stripes">
+          <span class="window-title-text">Calculator</span>
+        </div>
+        <div class="window-controls-right">
+          <button class="win-btn" title="Згорнути" onclick="toggleCollapse('win-calculator')">
+            <div class="win-btn-collapse-inner"></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="window-body" style="margin: 0; border: none;">
+        <div class="calc-container">
+          <div class="calc-display" id="calc-display">0</div>
+          <div class="calc-grid">
+            <button class="calc-key op" onclick="calcClear()">C</button>
+            <button class="calc-key op" onclick="calcOp('/')">÷</button>
+            <button class="calc-key op" onclick="calcOp('*')">×</button>
+            <button class="calc-key op" onclick="calcBackspace()">⌫</button>
+
+            <button class="calc-key" onclick="calcDigit('7')">7</button>
+            <button class="calc-key" onclick="calcDigit('8')">8</button>
+            <button class="calc-key" onclick="calcDigit('9')">9</button>
+            <button class="calc-key op" onclick="calcOp('-')">−</button>
+
+            <button class="calc-key" onclick="calcDigit('4')">4</button>
+            <button class="calc-key" onclick="calcDigit('5')">5</button>
+            <button class="calc-key" onclick="calcDigit('6')">6</button>
+            <button class="calc-key op" onclick="calcOp('+')">+</button>
+
+            <button class="calc-key" onclick="calcDigit('1')">1</button>
+            <button class="calc-key" onclick="calcDigit('2')">2</button>
+            <button class="calc-key" onclick="calcDigit('3')">3</button>
+            <button class="calc-key eq" onclick="calcEquals()">=</button>
+
+            <button class="calc-key zero" onclick="calcDigit('0')">0</button>
+            <button class="calc-key" onclick="calcDot()">.</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== ВІКНО 4: MACINTOSH HD (FINDER) ==================== -->
+    <div class="mac-window" id="win-hd" style="width: 420px; height: 290px; top: 110px; left: 190px; display: none;">
+      <div class="window-titlebar">
+        <button class="win-btn" title="Закрити" onclick="closeWindow('win-hd')"></button>
+        <div class="titlebar-stripes">
+          <span class="window-title-text" id="hd-window-title">Macintosh HD</span>
+        </div>
+        <div class="window-controls-right">
+          <button class="win-btn" title="Згорнути" onclick="toggleCollapse('win-hd')">
+            <div class="win-btn-collapse-inner"></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="window-body">
+        <div class="finder-subheader">
+          <span id="hd-item-count">4 об'єкти</span>
+          <span>Вільно: 342.8 МБ</span>
+        </div>
+        <div class="finder-grid" id="finder-grid">
+          <!-- Динамічно заповнюється JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== ВІКНО 5: PUZZLE 15 (МІНІ-ГРА) ==================== -->
+    <div class="mac-window" id="win-puzzle" style="width: 280px; height: 350px; top: 65px; left: 260px; display: none;">
+      <div class="window-titlebar">
+        <button class="win-btn" title="Закрити" onclick="closeWindow('win-puzzle')"></button>
+        <div class="titlebar-stripes">
+          <span class="window-title-text">Puzzle 15</span>
+        </div>
+        <div class="window-controls-right">
+          <button class="win-btn" title="Згорнути" onclick="toggleCollapse('win-puzzle')">
+            <div class="win-btn-collapse-inner"></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="window-body" style="margin: 0; border: none;">
+        <div class="puzzle-wrap">
+          <div style="display:flex; justify-content:space-between; width:224px; font-weight:700; font-size:12px;">
+            <span>Ходів: <span id="puzzle-moves">0</span></span>
+            <span id="puzzle-status" style="color:#000080;">Зберіть 1–15</span>
+          </div>
+          <div class="puzzle-board" id="puzzle-board"></div>
+          <button class="retro-btn" onclick="initPuzzle()">🔀 Перемішати</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== 4. МОДАЛЬНІ ДІАЛОГИ ==================== -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="mac-dialog" onclick="event.stopPropagation()">
+      <div style="display:flex; gap: 14px; align-items: flex-start;">
+        <div id="modal-icon">
+          <!-- Кольорове яблуко -->
+          <svg width="36" height="42" viewBox="0 0 14 16" shape-rendering="crispEdges">
+            <rect x="7" y="0" width="2" height="2" fill="#61bb46"/>
+            <rect x="6" y="2" width="2" height="1" fill="#61bb46"/>
+            <rect x="3" y="3" width="8" height="2" fill="#61bb46"/>
+            <rect x="2" y="5" width="9" height="2" fill="#fdb827"/>
+            <rect x="2" y="7" width="8" height="2" fill="#f5821f"/>
+            <rect x="2" y="9" width="9" height="2" fill="#e03a3e"/>
+            <rect x="3" y="11" width="9" height="2" fill="#963d97"/>
+            <rect x="4" y="13" width="3" height="2" fill="#009ddc"/>
+            <rect x="8" y="13" width="3" height="2" fill="#009ddc"/>
+          </svg>
+        </div>
+        <div style="flex:1;">
+          <h3 id="modal-title" style="margin:0 0 6px 0; font-size:14px;">Про цей Macintosh</h3>
+          <div id="modal-body" style="font-size:12px; line-height:1.45; color:#222;"></div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end;">
+        <button class="retro-btn primary" onclick="hideModal()">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ==========================================================================
+     1. WEB AUDIO API — СИНТЕЗАТОР РЕТРО-ЗВУКІВ MAC OS
+     ========================================================================== */
+  class MacSoundEngine {
+    constructor() {
+      this.ctx = null;
+      this.muted = false;
+    }
+
+    init() {
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) this.ctx = new AudioCtx();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    }
+
+    playTone(freq, type = 'sine', duration = 0.08, gainVal = 0.08, delay = 0) {
+      if (this.muted) return;
+      this.init();
+      if (!this.ctx) return;
+
+      const now = this.ctx.currentTime + delay;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(gainVal, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + duration + 0.02);
+    }
+
+    // Знаменитий привітальний акорд Macintosh (Фа-мажор)
+    playStartupChime() {
+      if (this.muted) return;
+      const notes = [174.61, 261.63, 349.23, 440.00, 523.25]; // F3, C4, F4, A4, C5
+      notes.forEach((freq) => {
+        this.playTone(freq, 'triangle', 1.6, 0.06, 0);
+      });
+    }
+
+    playClick() {
+      this.playTone(950, 'square', 0.025, 0.04);
+    }
+
+    playWindowOpen() {
+      this.playTone(320, 'triangle', 0.06, 0.07, 0);
+      this.playTone(540, 'triangle', 0.09, 0.07, 0.04);
+    }
+
+    playWindowClose() {
+      this.playTone(520, 'triangle', 0.06, 0.07, 0);
+      this.playTone(280, 'triangle', 0.09, 0.07, 0.04);
+    }
+
+    playTypeTick() {
+      const pitch = 680 + Math.random() * 240;
+      this.playTone(pitch, 'square', 0.02, 0.022);
+    }
+
+    playTrashEmpty() {
+      for (let i = 0; i < 6; i++) {
+        this.playTone(220 + Math.random() * 480, 'sawtooth', 0.05, 0.04, i * 0.045);
+      }
+    }
+  }
+
+  const sfx = new MacSoundEngine();
+
+  function toggleSound() {
+    sfx.muted = !sfx.muted;
+    document.getElementById('sound-toggle').textContent = sfx.muted ? '🔇' : '🔊';
+    if (!sfx.muted) sfx.playClick();
+  }
+
+  /* ==========================================================================
+     2. ЗАВАНТАЖЕННЯ СИСТЕМИ ТА ГОДИННИК
+     ========================================================================== */
+  let bootComplete = false;
+
+  function finishBoot() {
+    if (bootComplete) return;
+    bootComplete = true;
+    const bootEl = document.getElementById('boot-screen');
+    bootEl.style.display = 'none';
+    sfx.playStartupChime();
+
+    // Вітальне повідомлення в MacAI Assistant
+    setTimeout(() => {
+      addAiMessage(
+        "Вітаю у Mac OS 7.5.5! \nЯ — MacAI Assistant, ваш персональний інтелект 1995 року. Можу розповісти про епоху 90-х, згенерувати ідею стартапу, написати кіберпанк-вірш або допомогти з текстом у SimpleText.\n\nОберіть швидку команду вище або напишіть своє запитання!"
+      );
+    }, 250);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const bar = document.getElementById('boot-progress');
+    const status = document.getElementById('boot-status');
+    const steps = [
+      { p: 25, t: 'Ініціалізація процесора Motorola 68040...' },
+      { p: 55, t: 'Завантаження QuickDraw та Finder 7.5...' },
+      { p: 85, t: 'Підключення нейромережі MacAI v1.0...' },
+      { p: 100, t: 'Ласкаво просимо!' }
+    ];
+
+    let idx = 0;
+    const bootInterval = setInterval(() => {
+      if (idx < steps.length) {
+        bar.style.width = steps[idx].p + '%';
+        status.textContent = steps[idx].t;
+        idx++;
+      } else {
+        clearInterval(bootInterval);
+        setTimeout(finishBoot, 350);
+      }
+    }, 450);
+
+    document.getElementById('boot-skip-btn').addEventListener('click', () => {
+      clearInterval(bootInterval);
+      finishBoot();
+    });
+
+    // Перший клік активує аудіоконтекст браузера
+    document.body.addEventListener('pointerdown', () => sfx.init(), { once: true });
+
+    updateClock();
+    setInterval(updateClock, 1000);
+    renderFinder('root');
+    initPuzzle();
+  });
+
+  function updateClock() {
+    const now = new Date();
+    const days = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('clock-display').textContent = `${days[now.getDay()]} ${hh}:${mm}`;
+  }
+
+  function restartMac() {
+    sfx.playClick();
+    bootComplete = false;
+    document.getElementById('boot-progress').style.width = '0%';
+    document.getElementById('boot-screen').style.display = 'flex';
+    document.getElementById('ai-chat-log').innerHTML = '';
+    setTimeout(() => {
+      document.getElementById('boot-progress').style.width = '100%';
+      setTimeout(finishBoot, 900);
+    }, 400);
+  }
+
+  /* ==========================================================================
+     3. ВЕРХНЄ МЕНЮ ТА ДІАЛОГОВІ ВІКНА
+     ========================================================================== */
+  document.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasActive = item.classList.contains('active');
+      closeAllMenus();
+      if (!wasActive) {
+        item.classList.add('active');
+        sfx.playClick();
+      }
+    });
+  });
+
+  document.addEventListener('click', () => {
+    closeAllMenus();
+    document.querySelectorAll('.desktop-icon').forEach(ic => ic.classList.remove('selected'));
+  });
+
+  function closeAllMenus() {
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  }
+
+  function showModal(title, htmlBody) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = htmlBody;
+    document.getElementById('modal-overlay').classList.add('open');
+    sfx.playWindowOpen();
+  }
+
+  function hideModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    sfx.playClick();
+  }
+
+  function closeModal(e) {
+    if (e.target.id === 'modal-overlay') hideModal();
+  }
+
+  function openAboutDialog() {
+    showModal(
+      'Про цей Macintosh',
+      `<strong>System Software 7.5.5 (Platinum Edition)</strong><br><br>
+       • Процесор: Motorola 68040 @ 33 MHz<br>
+       • Вбудована пам'ять: 32 768 КБ (32 МБ)<br>
+       • Співпроцесор ШІ: MacAI Neural Engine 1.0<br>
+       • Роздільна здатність: CRT Retro Color<br><br>
+       <em>© 1984–1995 Apple Computer, Inc. Веб-симуляція.</em>`
+    );
+  }
+
+  let scanlinesEnabled = true;
+  function toggleScanlines() {
+    scanlinesEnabled = !scanlinesEnabled;
+    document.getElementById('crt-scanlines').classList.toggle('off', !scanlinesEnabled);
+    document.getElementById('scanline-menu-label').textContent =
+      (scanlinesEnabled ? '✓ ' : '   ') + 'Ефект ЕПТ-ліній';
+    sfx.playClick();
+  }
+
+  /* ==========================================================================
+     4. МЕНЕДЖЕР ВІКОН (DRAG, FOCUS, Z-INDEX, COLLAPSE)
+     ========================================================================== */
+  let topZ = 110;
+
+  function focusWindow(winEl) {
+    if (!winEl) return;
+    document.querySelectorAll('.mac-window').forEach(w => w.classList.remove('active'));
+    winEl.classList.add('active');
+    topZ++;
+    winEl.style.zIndex = topZ;
+  }
+
+  function openApp(appName) {
+    closeAllMenus();
+    const map = {
+      ai: 'win-ai',
+      simpletext: 'win-simpletext',
+      calculator: 'win-calculator',
+      hd: 'win-hd',
+      puzzle: 'win-puzzle'
+    };
+
+    if (appName === 'trash') {
+      openTrashDialog();
+      return;
+    }
+
+    const winId = map[appName];
+    const winEl = document.getElementById(winId);
+    if (!winEl) return;
+
+    if (winEl.style.display === 'none') {
+      winEl.style.display = 'flex';
+      // Тримаємо вікно в межах екрана
+      const maxLeft = Math.max(10, window.innerWidth - winEl.offsetWidth - 16);
+      const maxTop = Math.max(32, window.innerHeight - winEl.offsetHeight - 16);
+      if (parseInt(winEl.style.left) > maxLeft) winEl.style.left = maxLeft + 'px';
+      if (parseInt(winEl.style.top) > maxTop) winEl.style.top = maxTop + 'px';
+      sfx.playWindowOpen();
+    } else {
+      sfx.playClick();
+    }
+
+    winEl.classList.remove('collapsed');
+    focusWindow(winEl);
+  }
+
+  function closeWindow(winId) {
+    const winEl = document.getElementById(winId);
+    if (winEl) {
+      winEl.style.display = 'none';
+      sfx.playWindowClose();
+    }
+  }
+
+  function closeActiveWindow() {
+    const active = document.querySelector('.mac-window.active');
+    if (active && active.style.display !== 'none') {
+      closeWindow(active.id);
+    }
+  }
+
+  function toggleCollapse(winId) {
+    const winEl = document.getElementById(winId);
+    if (winEl) {
+      winEl.classList.toggle('collapsed');
+      sfx.playClick();
+    }
+  }
+
+  function cascadeWindows() {
+    const wins = Array.from(document.querySelectorAll('.mac-window')).filter(w => w.style.display !== 'none');
+    wins.forEach((w, i) => {
+      w.style.top = (30 + i * 28) + 'px';
+      w.style.left = (24 + i * 28) + 'px';
+      focusWindow(w);
+    });
+    sfx.playClick();
+  }
+
+  function cleanUpDesktop() {
+    sfx.playClick();
+    const icons = document.querySelectorAll('#desktop-icons .desktop-icon');
+    icons.forEach((ic, idx) => {
+      ic.style.transform = 'scale(1.06)';
+      setTimeout(() => ic.style.transform = 'scale(1)', 140 + idx * 40);
+    });
+  }
+
+  // Перетягування вікон мишею та тачем
+  document.querySelectorAll('.mac-window').forEach(win => {
+    win.addEventListener('pointerdown', () => focusWindow(win));
+
+    const titlebar = win.querySelector('.window-titlebar');
+    let isDragging = false;
+    let offsetX = 0, offsetY = 0;
+
+    titlebar.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.win-btn')) return;
+      isDragging = true;
+      focusWindow(win);
+      const rect = win.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      titlebar.setPointerCapture(e.pointerId);
+    });
+
+    titlebar.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const desktopRect = document.getElementById('desktop').getBoundingClientRect();
+      let newLeft = e.clientX - desktopRect.left - offsetX;
+      let newTop = e.clientY - desktopRect.top - offsetY;
+
+      newLeft = Math.max(-win.offsetWidth + 80, Math.min(desktopRect.width - 80, newLeft));
+      newTop = Math.max(0, Math.min(desktopRect.height - 26, newTop));
+
+      win.style.left = newLeft + 'px';
+      win.style.top = newTop + 'px';
+    });
+
+    titlebar.addEventListener('pointerup', (e) => {
+      isDragging = false;
+      titlebar.releasePointerCapture(e.pointerId);
+    });
+  });
+
+  // Іконки робочого столу: виділення + відкриття (подвійний клік або швидкий повторний тап)
+  document.querySelectorAll('.desktop-icon').forEach(icon => {
+    let lastTap = 0;
+    icon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.desktop-icon').forEach(ic => ic.classList.remove('selected'));
+      icon.classList.add('selected');
+      sfx.playClick();
+
+      const now = Date.now();
+      if (now - lastTap < 420) {
+        openApp(icon.dataset.app);
+      }
+      lastTap = now;
+    });
+
+    icon.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      openApp(icon.dataset.app);
+    });
+  });
+
+  /* ==========================================================================
+     5. ПРОГРАМА 1: MACAI ASSISTANT (ШІ-ДВИГУН + ЕФЕКТ ДРУКУ)
+     ========================================================================== */
+  let isAiTyping = false;
+
+  const aiKnowledge = {
+    '1994': `📅 **Хроніки 1994 року — Золота ера технологій:**\n• Apple випускає перші **Power Macintosh** на базі процесорів PowerPC 601 — справжній прорив швидкості!\n• Виходить культовий фільм «Кримінальне чтиво» та гра **DOOM II**.\n• Всесвітня павутина (WWW) починає підкорювати світ, а модеми на 14.4 кбіт/с здаються космічною швидкістю.\n• У повітрі пахне дискетами 3.5" та новим пластиком корпусів Macintosh!`,
+
+    'кіберпанк': `🌆 **Неоновий сонет (Кіберпанк 1995):**\n\nСеред піксельних сутінків ЕПТ-екрана,\nДе біжить по дротах електричний пульс,\nСпить у пам'яті система нездоланна,\nТримаючи світ на кінчиках пальців рук.\n\nМідні шини гудуть під холодним дощем,\nКод тече крізь матрицю, мов срібна ріка,\nМи — примари в машині, ми вільні іще,\nПоки світиться курсор нашого Мака.`,
+
+    'стартап': () => {
+      const ideas = [
+        `💡 **Стартап-ідея #1: FloppyCloud™**\nСервіс миттєвої доставки даних: ви надсилаєте файл модемом, а наші кур'єри на роликах розвозять 3.5-дюймові дискети по місту за 30 хвилин!`,
+        `💡 **Стартап-ідея #2: PixelTamagotchi OS**\nЦифровий улюбленець, який живе прямо у верхньому меню Mac OS і харчується невикористаними мегабайтами оперативної пам'яті.`,
+        `💡 **Стартап-ідея #3: CyberCafe Finder**\nІнтерактивна карта всіх інтернет-кафе міста з рейтингом швидкості Dial-Up з'єднання та свіжості кави.`
+      ];
+      return ideas[Math.floor(Math.random() * ideas.length)];
+    },
+
+    'діагностика': `🔧 **Діагностика системи Macintosh:**\n• Процесор: Motorola 68040 — [OK]\n• Оперативна пам'ять: 32 МБ (вільно 24.1 МБ) — [OK]\n• Жорсткий диск Macintosh HD: без бед-блоків — [OK]\n• Батарейка PRAM: заряд 98% — [OK]\n• Нейронний модуль MacAI: працює на повну потужність!\n\nВисновок: Ваш Macintosh у бездоганній формі!`,
+
+    'жарт': () => {
+      const jokes = [
+        `😄 Чому програмісти 90-х ніколи не губилися в лісі? Бо вони завжди залишали за собою хлібні крихти... у вигляді резервних копій на дискетах!`,
+        `😄 Скільки програмістів потрібно, щоб замінити лампочку? Жодного — це апаратна проблема!`,
+        `😄 Мій жорсткий диск на 500 мегабайт настільки величезний, що я ніколи в житті не зможу його заповнити!`
+      ];
+      return jokes[Math.floor(Math.random() * jokes.length)];
+    },
+
+    'код': `💻 **Приклад класичного коду на C для Macintosh Toolbox:**\n\`\`\`c\n#include <Quickdraw.h>\nvoid SayHello() {\n  MoveTo(40, 60);\n  DrawString("\\pПривіт, Mac OS 7.5!");\n}\n\`\`\`\nОсь так малювався кожен піксель у 1990-х роках!`
+  };
+
+  function generateAiResponse(userText) {
+    const q = userText.toLowerCase().trim();
+
+    if (q.includes('1994') || q.includes('рік') || q.includes('історі')) return aiKnowledge['1994'];
+    if (q.includes('вірш') || q.includes('кіберпанк') || q.includes('поез')) return aiKnowledge['кіберпанк'];
+    if (q.includes('стартап') || q.includes('іде')) return aiKnowledge['стартап']();
+    if (q.includes('діагностик') || q.includes('систем') || q.includes('перевір')) return aiKnowledge['діагностика'];
+    if (q.includes('жарт') || q.includes('анекдот') || q.includes('сміш')) return aiKnowledge['жарт']();
+    if (q.includes('код') || q.includes('програм') || q.includes('javascript') || q.includes('c++')) return aiKnowledge['код'];
+    if (q.includes('привіт') || q.includes('вітаю') || q.includes('хай')) {
+      return "Привіт-привіт! Радий бачити вас за екраном цього чудового Macintosh. Чим можу допомогти сьогодні? Можемо написати текст, згенерувати ідею або зіграти в Puzzle 15!";
+    }
+    if (q.includes('як користуватися') || q.includes('довідка') || q.includes('допомог')) {
+      return "📘 **Коротка довідка Mac OS 7.5:**\n1. Натискайте двічі на іконки справа (Macintosh HD, SimpleText, Calculator, Puzzle 15).\n2. Перетягуйте вікна за верхню смугасту панель.\n3. У редакторі **SimpleText** є кнопка «ШІ: Продовжити текст» — спробуйте її!";
+    }
+
+    return `🤔 Цікавий запит: «${userText}»!\nЯк ШІ-асистент епохи 90-х, я обробив його на частоті 33 МГц. Рекомендую занотувати цю думку в **SimpleText** та натиснути «ШІ: Продовжити текст», або запитати мене про **1994 рік**, **стартап**, **жарт** чи **кіберпанк**!`;
+  }
+
+  function addAiMessage(text) {
+    const log = document.getElementById('ai-chat-log');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-msg ai';
+
+    const sender = document.createElement('div');
+    sender.className = 'chat-sender';
+    sender.textContent = 'MacAI Assistant';
+
+    const content = document.createElement('div');
+    msgDiv.appendChild(sender);
+    msgDiv.appendChild(content);
+    log.appendChild(msgDiv);
+
+    // Анімація друкарської машинки + анімація маскота
+    isAiTyping = true;
+    const led = document.getElementById('ai-status-led');
+    const statusText = document.getElementById('ai-status-text');
+    const mouth = document.getElementById('mac-mouth');
+    led.classList.add('thinking');
+    statusText.textContent = 'Обробка запиту та синтез відповіді...';
+
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i < text.length) {
+        content.textContent += text[i];
+        if (i % 3 === 0) {
+          sfx.playTypeTick();
+          mouth.setAttribute('height', mouth.getAttribute('height') === '1' ? '2' : '1');
+        }
+        log.scrollTop = log.scrollHeight;
+        i++;
+      } else {
+        clearInterval(timer);
+        isAiTyping = false;
+        led.classList.remove('thinking');
+        statusText.textContent = 'Готовий до роботи.';
+        mouth.setAttribute('height', '1');
+      }
+    }, 18);
+  }
+
+  function sendAiPrompt(promptText) {
+    if (isAiTyping || !promptText.trim()) return;
+    openApp('ai');
+
+    const log = document.getElementById('ai-chat-log');
+    const userDiv = document.createElement('div');
+    userDiv.className = 'chat-msg user';
+    userDiv.innerHTML = `<div class="chat-sender">Ви</div><div></div>`;
+    userDiv.lastChild.textContent = promptText;
+    log.appendChild(userDiv);
+    log.scrollTop = log.scrollHeight;
+
+    sfx.playClick();
+
+    setTimeout(() => {
+      const reply = generateAiResponse(promptText);
+      addAiMessage(reply);
+    }, 320);
+  }
+
+  function handleAiSubmit(e) {
+    e.preventDefault();
+    const input = document.getElementById('ai-input');
+    const val = input.value.trim();
+    if (!val || isAiTyping) return;
+    input.value = '';
+    sendAiPrompt(val);
+  }
+
+  function askAiFromMenu(prompt) {
+    closeAllMenus();
+    sendAiPrompt(prompt);
+  }
+
+  // Періодичне кліпання маскота Happy Mac
+  setInterval(() => {
+    const eyeL = document.getElementById('mac-eye-l');
+    const eyeR = document.getElementById('mac-eye-r');
+    if (!eyeL || !eyeR) return;
+    eyeL.setAttribute('height', '1');
+    eyeR.setAttribute('height', '1');
+    setTimeout(() => {
+      eyeL.setAttribute('height', '2');
+      eyeR.setAttribute('height', '2');
+    }, 150);
+  }, 4200);
+
+  /* ==========================================================================
+     6. ПРОГРАМА 2: SIMPLETEXT (РЕДАКТОР + ШІ-ПРОДОВЖЕННЯ)
+     ========================================================================== */
+  const editor = document.getElementById('simpletext-editor');
+
+  function updateSimpleTextStats() {
+    const text = editor.value;
+    const chars = text.length;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    document.getElementById('simpletext-stats').textContent = `Символів: ${chars} | Слів: ${words}`;
+  }
+
+  editor.addEventListener('input', updateSimpleTextStats);
+
+  function newSimpleTextDoc() {
+    openApp('simpletext');
+    editor.value = '';
+    document.getElementById('simpletext-title').textContent = 'SimpleText — Новий документ';
+    updateSimpleTextStats();
+  }
+
+  function clearSimpleText() {
+    editor.value = '';
+    updateSimpleTextStats();
+    sfx.playClick();
+  }
+
+  function copySimpleText() {
+    openApp('simpletext');
+    editor.select();
+    document.execCommand('copy');
+    sfx.playClick();
+    showModal('Буфер обміну', 'Текст документа скопійовано в системний буфер обміну Macintosh!');
+  }
+
+  function triggerAiContinue() {
+    openApp('simpletext');
+    sfx.playClick();
+
+    const current = editor.value.trim();
+    const continuations = [
+      " Тієї ночі неонові вогні міста відбивалися у склі старого ЕПТ-монітора, а процесор тихо шепотів нові рядки коду майбутнього.",
+      " Кожна збережена дискета зберігала в собі цілий всесвіт ідей, які чекали свого часу, щоб змінити цифровий світ назавжди.",
+      " Ми навіть не здогадувалися, що прості пікселі та моноширинні шрифти стануть класикою, до якої захочеться повертатися знову і знову.",
+      " Система працювала бездоганно: курсор ритмічно блимав, запрошуючи записати наступну велику ідею XXI століття."
+    ];
+
+    const addition = current.length === 0
+      ? "Ласкаво просимо до SimpleText! Це класичний текстовий редактор Mac OS 7.5. Навіть у 90-х роках технології надихали створювати неймовірні історії, писати код та мріяти про штучний інтелект."
+      : continuations[Math.floor(Math.random() * continuations.length)];
+
+    let idx = 0;
+    const iv = setInterval(() => {
+      if (idx < addition.length) {
+        editor.value += addition[idx];
+        if (idx % 3 === 0) sfx.playTypeTick();
+        updateSimpleTextStats();
+        editor.scrollTop = editor.scrollHeight;
+        idx++;
+      } else {
+        clearInterval(iv);
+      }
+    }, 20);
+  }
+
+  let savedDocsCount = 0;
+  function saveDocToTrashOrHd() {
+    const text = editor.value.trim();
+    if (!text) {
+      showModal('SimpleText', 'Документ порожній. Напишіть кілька слів перед збереженням!');
+      return;
+    }
+    savedDocsCount++;
+    const fileName = `Нотатка_${savedDocsCount}.txt`;
+    hdFiles.root.push({
+      name: fileName,
+      type: 'doc',
+      content: text
+    });
+    renderFinder(currentHdFolder);
+    sfx.playWindowOpen();
+    showModal('Збережено', `Файл <strong>${fileName}</strong> успішно збережено на <strong>Macintosh HD</strong>!`);
+  }
+
+  /* ==========================================================================
+     7. ПРОГРАМА 3: CALCULATOR (КЛАСИЧНИЙ КАЛЬКУЛЯТОР APPLE)
+     ========================================================================== */
+  let calcCurrent = '0';
+  let calcPrev = null;
+  let calcOperator = null;
+  let calcResetNext = false;
+
+  function updateCalcDisplay() {
+    document.getElementById('calc-display').textContent = calcCurrent;
+  }
+
+  function calcDigit(d) {
+    sfx.playClick();
+    if (calcResetNext) {
+      calcCurrent = d;
+      calcResetNext = false;
+    } else {
+      calcCurrent = calcCurrent === '0' ? d : (calcCurrent.length < 12 ? calcCurrent + d : calcCurrent);
+    }
+    updateCalcDisplay();
+  }
+
+  function calcDot() {
+    sfx.playClick();
+    if (calcResetNext) {
+      calcCurrent = '0.';
+      calcResetNext = false;
+    } else if (!calcCurrent.includes('.')) {
+      calcCurrent += '.';
+    }
+    updateCalcDisplay();
+  }
+
+  function calcClear() {
+    sfx.playClick();
+    calcCurrent = '0';
+    calcPrev = null;
+    calcOperator = null;
+    calcResetNext = false;
+    updateCalcDisplay();
+  }
+
+  function calcBackspace() {
+    sfx.playClick();
+    if (calcResetNext) return;
+    calcCurrent = calcCurrent.length > 1 ? calcCurrent.slice(0, -1) : '0';
+    updateCalcDisplay();
+  }
+
+  function calcOp(op) {
+    sfx.playClick();
+    if (calcOperator && !calcResetNext) {
+      calcEquals(true);
+    }
+    calcPrev = parseFloat(calcCurrent);
+    calcOperator = op;
+    calcResetNext = true;
+  }
+
+  function calcEquals(silent = false) {
+    if (!silent) sfx.playClick();
+    if (calcOperator === null || calcPrev === null) return;
+    const curr = parseFloat(calcCurrent);
+    let res = 0;
+
+    if (calcOperator === '+') res = calcPrev + curr;
+    if (calcOperator === '-') res = calcPrev - curr;
+    if (calcOperator === '*') res = calcPrev * curr;
+    if (calcOperator === '/') {
+      if (curr === 0) {
+        calcCurrent = 'Помилка';
+        calcOperator = null;
+        calcPrev = null;
+        calcResetNext = true;
+        updateCalcDisplay();
+        return;
+      }
+      res = calcPrev / curr;
+    }
+
+    calcCurrent = String(Math.round(res * 10000000) / 10000000);
+    calcOperator = null;
+    calcPrev = null;
+    calcResetNext = true;
+    updateCalcDisplay();
+  }
+
+  /* ==========================================================================
+     8. ПРОГРАМА 4: MACINTOSH HD (FINDER) ТА КОШИК
+     ========================================================================== */
+  let currentHdFolder = 'root';
+  let trashItems = ['Старий_звіт_1993.doc', 'Кеш_модему.tmp'];
+
+  const hdFiles = {
+    root: [
+      {
+        name: 'ReadMe.txt',
+        type: 'doc',
+        content: `ЛАСКАВО ПРОСИМО ДО MAC OS 7.5.5!\n====================================\n\nВи користуєтеся інтерактивною ретро-симуляцією класичного Macintosh з вбудованим ШІ-асистентом.\n\nМОЖЛИВОСТІ СИСТЕМИ:\n1. MacAI Assistant — розумний помічник у стилі 90-х з анімованим Happy Mac.\n2. SimpleText — текстовий редактор із функцією автопродовження тексту за допомогою ШІ.\n3. Calculator — класичний калькулятор для швидких обчислень.\n4. Puzzle 15 — легендарна гра-головоломка у меню Apple.\n5. Верхнє меню (File, Edit, View, Special, AI Help) повністю інтерактивне!\n\nНасолоджуйтесь атмосферою 1995 року!`
+      },
+      {
+        name: 'System Folder',
+        type: 'folder',
+        target: 'system'
+      },
+      {
+        name: 'Games',
+        type: 'folder',
+        target: 'games'
+      },
+      {
+        name: 'Маніфест_90х.txt',
+        type: 'doc',
+        content: `Епоха 1990-х навчила нас цінувати кожен кілобайт пам'яті, красу піксельної графіки та магію першого підключення до Інтернету.`
+      }
+    ],
+    system: [
+      { name: '⬅ Назад (Macintosh HD)', type: 'back', target: 'root' },
+      { name: 'Finder 7.5.5', type: 'sys' },
+      { name: 'System Enabler', type: 'sys' },
+      { name: 'MacAI Core.ext', type: 'sys' }
+    ],
+    games: [
+      { name: '⬅ Назад (Macintosh HD)', type: 'back', target: 'root' },
+      { name: 'Puzzle 15', type: 'app', app: 'puzzle' }
+    ]
+  };
+
+  function getFinderIconSvg(type) {
+    if (type === 'folder' || type === 'back') {
+      return `<svg width="40" height="34" viewBox="0 0 20 17" shape-rendering="crispEdges">
+        <polygon points="1,3 7,3 9,5 19,5 19,16 1,16" fill="#7ab8e6" stroke="#000" stroke-width="1.3"/>
+        <rect x="2" y="6" width="16" height="9" fill="#9cd0f5"/>
+      </svg>`;
+    }
+    if (type === 'app') {
+      return `<svg width="38" height="38" viewBox="0 0 19 19" shape-rendering="crispEdges">
+        <rect x="1" y="1" width="17" height="17" fill="#000"/>
+        <rect x="2" y="2" width="7" height="7" fill="#ffcc00"/>
+        <rect x="10" y="2" width="7" height="7" fill="#009ddc"/>
+        <rect x="2" y="10" width="7" height="7" fill="#61bb46"/>
+        <rect x="10" y="10" width="7" height="7" fill="#333"/>
+      </svg>`;
+    }
+    if (type === 'sys') {
+      return `<svg width="38" height="38" viewBox="0 0 19 19" shape-rendering="crispEdges">
+        <rect x="2" y="2" width="15" height="15" fill="#d8d8d8" stroke="#000" stroke-width="1.4"/>
+        <rect x="6" y="6" width="7" height="7" fill="#000080"/>
+      </svg>`;
+    }
+    return `<svg width="36" height="40" viewBox="0 0 19 20" shape-rendering="crispEdges">
+      <polygon points="2,1 13,1 17,5 17,19 2,19" fill="#fff" stroke="#000" stroke-width="1.5"/>
+      <polyline points="12,1 12,6 17,6" fill="none" stroke="#000" stroke-width="1.5"/>
+      <rect x="5" y="9" width="9" height="1" fill="#000"/>
+      <rect x="5" y="12" width="7" height="1" fill="#000"/>
+    </svg>`;
+  }
+
+  function renderFinder(folderKey) {
+    currentHdFolder = folderKey;
+    const grid = document.getElementById('finder-grid');
+    const items = hdFiles[folderKey] || [];
+    document.getElementById('hd-window-title').textContent =
+      folderKey === 'root' ? 'Macintosh HD' : (folderKey === 'system' ? 'System Folder' : 'Games');
+    document.getElementById('hd-item-count').textContent = `${items.length} об'єкт(ів)`;
+
+    grid.innerHTML = '';
+    items.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'finder-item';
+      el.innerHTML = `
+        <div class="icon-graphic">${getFinderIconSvg(item.type)}</div>
+        <div class="finder-label">${item.name}</div>
+      `;
+
+      let lastClick = 0;
+      const openItem = () => {
+        if (item.type === 'folder' || item.type === 'back') {
+          sfx.playWindowOpen();
+          renderFinder(item.target);
+        } else if (item.type === 'doc') {
+          openApp('simpletext');
+          document.getElementById('simpletext-title').textContent = `SimpleText — ${item.name}`;
+          editor.value = item.content;
+          updateSimpleTextStats();
+        } else if (item.type === 'app') {
+          openApp(item.app);
+        } else if (item.type === 'sys') {
+          showModal('Системний файл', `<strong>${item.name}</strong> є критичним компонентом Mac OS 7.5.5 і захищений від редагування.`);
+        }
+      };
+
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.finder-item').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        sfx.playClick();
+        const now = Date.now();
+        if (now - lastClick < 420) openItem();
+        lastClick = now;
+      });
+
+      el.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        openItem();
+      });
+
+      grid.appendChild(el);
+    });
+  }
+
+  function openTrashDialog() {
+    if (trashItems.length === 0) {
+      showModal('Trash (Кошик)', 'Кошик порожній. У ньому немає видалених файлів.');
+    } else {
+      showModal(
+        'Trash (Кошик)',
+        `У кошику знаходиться <strong>${trashItems.length}</strong> об'єкт(и):<br>• ${trashItems.join('<br>• ')}<br><br>Ви можете очистити кошик через меню <strong>Special → Очистити кошик</strong>.`
+      );
+    }
+  }
+
+  function emptyTrash() {
+    closeAllMenus();
+    if (trashItems.length === 0) {
+      showModal('Кошик', 'Кошик вже порожній!');
+      return;
+    }
+    trashItems = [];
+    sfx.playTrashEmpty();
+    showModal('Очищення кошика', '🗑️ Кошик успішно очищено! Звільнено 1.4 МБ дискового простору.');
+  }
+
+  /* ==========================================================================
+     9. ПРОГРАМА 5: PUZZLE 15 (КЛАСИЧНА МІНІ-ГРА MAC OS)
+     ========================================================================== */
+  let puzzleTiles = [];
+  let puzzleMoves = 0;
+
+  function initPuzzle() {
+    puzzleTiles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
+    // Гарантовано розв'язуване перемішування через легальні ходи
+    let emptyIdx = 15;
+    for (let i = 0; i < 90; i++) {
+      const neighbors = getPuzzleNeighbors(emptyIdx);
+      const randIdx = neighbors[Math.floor(Math.random() * neighbors.length)];
+      [puzzleTiles[emptyIdx], puzzleTiles[randIdx]] = [puzzleTiles[randIdx], puzzleTiles[emptyIdx]];
+      emptyIdx = randIdx;
+    }
+    puzzleMoves = 0;
+    document.getElementById('puzzle-moves').textContent = '0';
+    document.getElementById('puzzle-status').textContent = 'Зберіть 1–15';
+    renderPuzzle();
+  }
+
+  function getPuzzleNeighbors(idx) {
+    const res = [];
+    const r = Math.floor(idx / 4);
+    const c = idx % 4;
+    if (r > 0) res.push(idx - 4);
+    if (r < 3) res.push(idx + 4);
+    if (c > 0) res.push(idx - 1);
+    if (c < 3) res.push(idx + 1);
+    return res;
+  }
+
+  function renderPuzzle() {
+    const board = document.getElementById('puzzle-board');
+    board.innerHTML = '';
+
+    puzzleTiles.forEach((val, idx) => {
+      const tile = document.createElement('div');
+      tile.className = val === 0 ? 'puzzle-tile empty' : 'puzzle-tile';
+      tile.textContent = val === 0 ? '' : val;
+
+      if (val !== 0) {
+        tile.addEventListener('click', () => {
+          const emptyIdx = puzzleTiles.indexOf(0);
+          if (getPuzzleNeighbors(emptyIdx).includes(idx)) {
+            [puzzleTiles[emptyIdx], puzzleTiles[idx]] = [puzzleTiles[idx], puzzleTiles[emptyIdx]];
+            puzzleMoves++;
+            document.getElementById('puzzle-moves').textContent = puzzleMoves;
+            sfx.playClick();
+            renderPuzzle();
+            checkPuzzleWin();
+          }
+        });
+      }
+      board.appendChild(tile);
+    });
+  }
+
+  function checkPuzzleWin() {
+    const won = puzzleTiles.slice(0, 15).every((v, i) => v === i + 1);
+    if (won) {
+      document.getElementById('puzzle-status').textContent = '🎉 Перемога!';
+      sfx.playStartupChime();
+    }
+  }
+</script>
+</body>
+</html>
