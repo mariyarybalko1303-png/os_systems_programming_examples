@@ -1,0 +1,2846 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Симулятор та Візуалізатор Файлових Систем — Від FAT16 до APFS</title>
+  <style>
+    /* =====================================================================
+       БАЗОВІ ЗМІННІ ТА ТЕМИ ДЛЯ КОЖНОЇ ФАЙЛОВОЇ СИСТЕМИ
+       ===================================================================== */
+    :root {
+      --bg-app: #0f172a;
+      --bg-panel: #1e293b;
+      --bg-panel-alt: #0f172a;
+      --bg-hover: rgba(255, 255, 255, 0.08);
+      --bg-selected: rgba(56, 189, 248, 0.22);
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-text: #0f172a;
+      --btn-bg: #334155;
+      --btn-text: #f8fafc;
+      --btn-hover: #475569;
+      --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+      --font-mono: "Cascadia Code", "Fira Code", "Consolas", "Courier New", monospace;
+      --radius: 10px;
+      --panel-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+      --block-free: #1e293b;
+      --block-border: #334155;
+      --block-sys: #64748b;
+    }
+
+    /* ТЕМА 1: FAT12 / FAT16 (MS-DOS / Norton Commander 1980-ті) */
+    body.theme-fat16 {
+      --bg-app: #00005a;
+      --bg-panel: #000084;
+      --bg-panel-alt: #00006b;
+      --bg-hover: #0055aa;
+      --bg-selected: #00aaaa;
+      --border-color: #55ffff;
+      --text-main: #ffffff;
+      --text-muted: #55ffff;
+      --accent: #ffff55;
+      --accent-text: #000084;
+      --btn-bg: #00aaaa;
+      --btn-text: #000000;
+      --btn-hover: #55ffff;
+      --font-ui: "Consolas", "Courier New", monospace;
+      --radius: 0px;
+      --panel-shadow: 6px 6px 0px #000000;
+      --block-free: #000048;
+      --block-border: #0088aa;
+      --block-sys: #aa00aa;
+    }
+
+    /* ТЕМА 2: NTFS (Windows Fluent Explorer 1993 — дотепер) */
+    body.theme-ntfs {
+      --bg-app: #eef2f6;
+      --bg-panel: #ffffff;
+      --bg-panel-alt: #f8fafc;
+      --bg-hover: #f1f5f9;
+      --bg-selected: #dbeafe;
+      --border-color: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --accent: #0067c0;
+      --accent-text: #ffffff;
+      --btn-bg: #f1f5f9;
+      --btn-text: #0f172a;
+      --btn-hover: #e2e8f0;
+      --font-ui: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --radius: 8px;
+      --panel-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+      --block-free: #f1f5f9;
+      --block-border: #cbd5e1;
+      --block-sys: #475569;
+    }
+
+    /* ТЕМА 3: ext4 (Ubuntu / GNOME Linux 2008 — дотепер) */
+    body.theme-ext4 {
+      --bg-app: #180913;
+      --bg-panel: #25131f;
+      --bg-panel-alt: #1d0e18;
+      --bg-hover: rgba(233, 84, 32, 0.14);
+      --bg-selected: rgba(233, 84, 32, 0.32);
+      --border-color: #4a283e;
+      --text-main: #f6f5f4;
+      --text-muted: #c0b3bc;
+      --accent: #e95420;
+      --accent-text: #ffffff;
+      --btn-bg: #381e2f;
+      --btn-text: #f6f5f4;
+      --btn-hover: #4e2b42;
+      --font-ui: "Ubuntu", system-ui, -apple-system, sans-serif;
+      --radius: 10px;
+      --panel-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      --block-free: #1a0d16;
+      --block-border: #442539;
+      --block-sys: #77216f;
+    }
+
+    /* ТЕМА 4: APFS (macOS Finder 2017 — дотепер) */
+    body.theme-apfs {
+      --bg-app: #e8e8ed;
+      --bg-panel: rgba(255, 255, 255, 0.92);
+      --bg-panel-alt: #f5f5f7;
+      --bg-hover: rgba(0, 122, 255, 0.08);
+      --bg-selected: rgba(0, 122, 255, 0.18);
+      --border-color: #d2d2d7;
+      --text-main: #1d1d1f;
+      --text-muted: #6e6e73;
+      --accent: #007aff;
+      --accent-text: #ffffff;
+      --btn-bg: #e5e5ea;
+      --btn-text: #1d1d1f;
+      --btn-hover: #d1d1d6;
+      --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      --radius: 14px;
+      --panel-shadow: 0 12px 32px rgba(0, 0, 0, 0.09);
+      --block-free: #f5f5f7;
+      --block-border: #d2d2d7;
+      --block-sys: #5856d6;
+    }
+
+    /* =====================================================================
+       ЗАГАЛЬНЕ КОМПОНУВАННЯ
+       ===================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.25s ease, color 0.25s ease;
+      line-height: 1.45;
+      overflow-x: hidden;
+    }
+
+    button, input, textarea, select {
+      font-family: inherit;
+    }
+
+    /* ВЕРХНЯ ПАНЕЛЬ НАВІГАЦІЇ ТА ВКЛАДОК ЕПОХ */
+    .topbar {
+      background: var(--bg-panel);
+      border-bottom: 2px solid var(--border-color);
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      background: var(--accent);
+      color: var(--accent-text);
+      font-weight: 800;
+      padding: 5px 10px;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    .brand h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .brand small {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .fs-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .fs-tab {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid var(--border-color);
+      padding: 8px 14px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      transition: all 0.18s ease;
+    }
+
+    .fs-tab span.era {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      font-weight: 400;
+    }
+
+    .fs-tab:hover {
+      background: var(--btn-hover);
+      transform: translateY(-1px);
+    }
+
+    .fs-tab.active {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .fs-tab.active span.era {
+      opacity: 0.95;
+    }
+
+    /* ДОВІДКОВИЙ БАНЕР ПРО ФАЙЛОВУ СИСТЕМУ */
+    .fs-info-banner {
+      background: var(--bg-panel-alt);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      font-size: 0.82rem;
+    }
+
+    .info-chip {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 7px 12px;
+    }
+
+    .info-chip strong {
+      color: var(--accent);
+      display: block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 2px;
+    }
+
+    /* ПАНЕЛЬ ІНСТРУМЕНТІВ ДІАГНОСТИКИ ТА ШІ */
+    .diagnostic-bar {
+      padding: 10px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--bg-app);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .diag-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid var(--border-color);
+      padding: 7px 13px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--btn-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.08);
+      background: var(--accent);
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: #ffffff;
+      border-color: #b91c1c;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #ef4444;
+    }
+
+    .btn-success {
+      background: #059669;
+      color: #ffffff;
+      border-color: #047857;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      background: #10b981;
+    }
+
+    /* ОСНОВНИЙ РОБОЧИЙ ПРОСТІР (2 ПАНЕЛІ) */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.12fr 1fr;
+      gap: 16px;
+      padding: 16px 20px;
+      max-width: 1680px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1050px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: var(--panel-shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 540px;
+    }
+
+    .panel-header {
+      background: var(--bg-panel-alt);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title {
+      font-weight: 700;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Декоративні точки вікна macOS для APFS */
+    .mac-dots {
+      display: none;
+      gap: 6px;
+      margin-right: 4px;
+    }
+    body.theme-apfs .mac-dots {
+      display: inline-flex;
+    }
+    .mac-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .mac-dot.red { background: #ff5f56; }
+    .mac-dot.yellow { background: #ffbd2e; }
+    .mac-dot.green { background: #27c93f; }
+
+    /* =====================================================================
+       ЛІВА ПАНЕЛЬ: ФАЙЛОВИЙ МЕНЕДЖЕР
+       ===================================================================== */
+    .fm-toolbar {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: var(--bg-panel);
+    }
+
+    .fm-pathbar {
+      padding: 7px 12px;
+      background: var(--bg-panel-alt);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+    }
+
+    .path-display {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .fm-list-header {
+      display: grid;
+      grid-template-columns: 2.2fr 0.8fr 1.1fr 1.2fr;
+      padding: 7px 12px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-panel-alt);
+    }
+
+    .fm-list {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 360px;
+    }
+
+    .fm-row {
+      display: grid;
+      grid-template-columns: 2.2fr 0.8fr 1.1fr 1.2fr;
+      padding: 8px 12px;
+      font-size: 0.84rem;
+      align-items: center;
+      border-bottom: 1px solid rgba(128, 128, 128, 0.14);
+      cursor: pointer;
+      transition: background 0.12s ease;
+      gap: 6px;
+    }
+
+    .fm-row:hover {
+      background: var(--bg-hover);
+    }
+
+    .fm-row.selected {
+      background: var(--bg-selected);
+      outline: 1px solid var(--accent);
+    }
+
+    .fm-row.corrupted {
+      background: rgba(220, 38, 38, 0.18);
+      color: #fca5a5;
+    }
+
+    body.theme-ntfs .fm-row.corrupted,
+    body.theme-apfs .fm-row.corrupted {
+      color: #b91c1c;
+    }
+
+    .file-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .color-swatch {
+      width: 11px;
+      height: 11px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .file-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 600;
+    }
+
+    .file-title.hidden-attr {
+      opacity: 0.55;
+      font-style: italic;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 0.68rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      border: 1px solid var(--border-color);
+      background: var(--bg-panel-alt);
+    }
+
+    .badge-cow {
+      background: #0284c7;
+      color: #fff;
+      border-color: #38bdf8;
+    }
+
+    .badge-comp {
+      background: #059669;
+      color: #fff;
+      border-color: #34d399;
+    }
+
+    .badge-err {
+      background: #dc2626;
+      color: #fff;
+      border-color: #f87171;
+    }
+
+    /* Панель деталей та дій над вибраним файлом */
+    .selected-inspector {
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-panel-alt);
+      padding: 10px 12px;
+      font-size: 0.8rem;
+    }
+
+    .inspector-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .inspector-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .btn-xs {
+      padding: 4px 9px;
+      font-size: 0.75rem;
+    }
+
+    /* =====================================================================
+       ПРАВА ПАНЕЛЬ: ВІЗУАЛІЗАТОР ДИСКА "ПІД КАПОТОМ"
+       ===================================================================== */
+    .disk-telemetry {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--bg-panel-alt);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 550px) {
+      .disk-telemetry {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .tele-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 6px 8px;
+    }
+
+    .tele-label {
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+    }
+
+    .tele-val {
+      font-weight: 800;
+      font-size: 0.95rem;
+      font-family: var(--font-mono);
+    }
+
+    /* Сітка 100 блоків (10x10) */
+    .disk-grid-wrapper {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+
+    .disk-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 5px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .disk-block {
+      aspect-ratio: 1 / 1;
+      border-radius: calc(var(--radius) * 0.55);
+      border: 1px solid var(--block-border);
+      background: var(--block-free);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.14s ease, box-shadow 0.14s ease, background-color 0.25s ease;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    .disk-block:hover {
+      transform: scale(1.13);
+      z-index: 10;
+      box-shadow: 0 0 0 2px var(--accent), 0 6px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    .disk-block.highlighted {
+      box-shadow: 0 0 0 2.5px #ffffff, 0 0 12px var(--accent);
+      transform: scale(1.07);
+      z-index: 5;
+    }
+
+    .disk-block.system {
+      background: var(--block-sys);
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .disk-block.fragmented {
+      border: 2px dashed #f59e0b;
+    }
+
+    .disk-block.cow-shared {
+      background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.24),
+        rgba(255, 255, 255, 0.24) 4px,
+        transparent 4px,
+        transparent 8px
+      );
+    }
+
+    .disk-block.snapshot-locked::after {
+      content: "🔒";
+      position: absolute;
+      top: 1px;
+      right: 1px;
+      font-size: 0.55rem;
+    }
+
+    .disk-block.corrupted-block {
+      background: #dc2626 !important;
+      color: #ffffff !important;
+      border: 2px solid #fef08a;
+      animation: pulseErr 1.2s infinite;
+    }
+
+    @keyframes pulseErr {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.65; }
+    }
+
+    .block-num {
+      font-size: 0.56rem;
+      opacity: 0.78;
+      line-height: 1;
+    }
+
+    .block-tag {
+      font-weight: 800;
+      font-size: 0.65rem;
+      line-height: 1.1;
+      margin-top: 2px;
+    }
+
+    /* Легенда блоків */
+    .disk-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 8px 14px;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      background: var(--bg-panel-alt);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-box {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Постійний інспектор сектора під сіткою */
+    .sector-live-bar {
+      padding: 9px 14px;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border-color);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      min-height: 54px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* =====================================================================
+       ЖУРНАЛ ПОДІЙ ТА ПОВІДОМЛЕНЬ ВНИЗУ
+       ===================================================================== */
+    .event-log-bar {
+      max-width: 1680px;
+      width: calc(100% - 40px);
+      margin: 0 auto 16px auto;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 0.8rem;
+    }
+
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--accent);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+    }
+
+    .log-entries {
+      max-height: 92px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .log-entry {
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--bg-panel-alt);
+    }
+
+    .log-entry.warn { border-left: 3px solid #f59e0b; }
+    .log-entry.err  { border-left: 3px solid #ef4444; }
+    .log-entry.ok   { border-left: 3px solid #10b981; }
+    .log-entry.info { border-left: 3px solid var(--accent); }
+
+    /* =====================================================================
+       ПЛАВАЮЧА ПІДКАЗКА (TOOLTIP) ПРИ НАВЕДЕННІ НА БЛОК
+       ===================================================================== */
+    .floating-tooltip {
+      position: fixed;
+      pointer-events: none;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.96);
+      color: #f8fafc;
+      border: 1px solid #38bdf8;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 0.76rem;
+      max-width: 290px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      display: none;
+      font-family: var(--font-mono);
+      line-height: 1.4;
+    }
+
+    /* =====================================================================
+       МОДАЛЬНІ ВІКНА (РЕДАКТОР ФАЙЛУ, ШІ-АНАЛІЗ, ЗБІЙ ЖИВЛЕННЯ)
+       ===================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 90;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-panel);
+      color: var(--text-main);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 620px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
+      overflow: hidden;
+      animation: modalPop 0.18s ease-out;
+    }
+
+    @keyframes modalPop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-head {
+      padding: 12px 16px;
+      background: var(--bg-panel-alt);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+    }
+
+    .modal-body {
+      padding: 16px;
+      max-height: 75vh;
+      overflow-y: auto;
+      font-size: 0.88rem;
+    }
+
+    .modal-foot {
+      padding: 12px 16px;
+      background: var(--bg-panel-alt);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 0.82rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: calc(var(--radius) * 0.7);
+      border: 1px solid var(--border-color);
+      background: var(--bg-panel-alt);
+      color: var(--text-main);
+      font-size: 0.86rem;
+    }
+
+    textarea.form-control {
+      min-height: 130px;
+      font-family: var(--font-mono);
+      resize: vertical;
+    }
+
+    .ai-section {
+      background: var(--bg-panel-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .ai-section h4 {
+      color: var(--accent);
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    .ai-score-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.82rem;
+      margin-bottom: 8px;
+    }
+
+    .journal-step {
+      padding: 8px 10px;
+      border-left: 3px solid var(--accent);
+      background: var(--bg-panel-alt);
+      margin-bottom: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body class="theme-fat16">
+
+  <!-- ВЕРХНЯ ПАНЕЛЬ З ПЕРЕМИКАЧЕМ ЕПОХ -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-badge">FS-LAB</div>
+      <div>
+        <h1>Візуалізатор Файлових Систем</h1>
+        <small>Інтерактивна модель: кластери, MFT, inodes, Copy-on-Write та журналювання</small>
+      </div>
+    </div>
+
+    <nav class="fs-tabs" aria-label="Вибір файлової системи">
+      <button class="fs-tab active" data-fs="fat16">
+        <span>FAT12 / FAT16</span>
+        <span class="era">1980-ті • MS-DOS / Norton</span>
+      </button>
+      <button class="fs-tab" data-fs="ntfs">
+        <span>NTFS</span>
+        <span class="era">1993 — дотепер • Windows</span>
+      </button>
+      <button class="fs-tab" data-fs="ext4">
+        <span>ext4</span>
+        <span class="era">2008 — дотепер • Linux</span>
+      </button>
+      <button class="fs-tab" data-fs="apfs">
+        <span>APFS</span>
+        <span class="era">2017 — дотепер • macOS</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- ДОВІДКОВИЙ БАНЕР ОБРАНОЇ ФС -->
+  <section class="fs-info-banner" id="fsInfoBanner"></section>
+
+  <!-- ПАНЕЛЬ ШІ-АНАЛІЗУ, ДЕФРАГМЕНТАЦІЇ ТА СИМУЛЯЦІЇ ЗБОЮ -->
+  <section class="diagnostic-bar">
+    <div class="diag-actions">
+      <button class="btn btn-primary" id="btnAiAnalyze">🧠 ШІ-Аналіз диска</button>
+      <button class="btn" id="btnDefrag">⚡ Дефрагментація / Оптимізація</button>
+      <button class="btn btn-danger" id="btnPowerOutage">🔌 Симуляція збою живлення</button>
+      <button class="btn btn-success" id="btnChkdsk" style="display:none;">🛠️ Запустити CHKDSK / SCANDISK</button>
+    </div>
+    <div class="diag-actions">
+      <button class="btn" id="btnFragmentDemo" title="Штучно створити фрагментацію для наочності">🧩 Тест фрагментації</button>
+      <button class="btn" id="btnResetDisk">🔄 Скинути диск</button>
+    </div>
+  </section>
+
+  <!-- ГОЛОВНИЙ РОБОЧИЙ ПРОСТІР (ЛІВА ТА ПРАВА ПАНЕЛІ) -->
+  <main class="workspace">
+    <!-- ЛІВА ПАНЕЛЬ: ІНТЕРАКТИВНИЙ ФАЙЛОВИЙ МЕНЕДЖЕР -->
+    <section class="panel" aria-label="Файловий менеджер">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="mac-dots">
+            <span class="mac-dot red"></span>
+            <span class="mac-dot yellow"></span>
+            <span class="mac-dot green"></span>
+          </div>
+          <span id="fmWindowTitle">C:\ — NORTON COMMANDER (FAT16)</span>
+        </div>
+        <span class="badge" id="fsRuleBadge">Формат імен: 8.3</span>
+      </div>
+
+      <!-- Кнопки створення об'єктів -->
+      <div class="fm-toolbar" id="fmToolbar">
+        <button class="btn btn-xs btn-primary" id="btnNewFile">+ Текстовий файл</button>
+        <button class="btn btn-xs" id="btnNewFolder">+ Папка</button>
+        <button class="btn btn-xs" id="btnHardLink" style="display:none;">🔗 Жорстке посилання</button>
+        <button class="btn btn-xs" id="btnSymLink" style="display:none;">↪️ Символічне посилання</button>
+        <button class="btn btn-xs" id="btnSnapshot" style="display:none;">📸 Знімок (Snapshot)</button>
+        <button class="btn btn-xs" id="btnRestoreSnapshot" style="display:none;">⏪ Відновити знімок</button>
+      </div>
+
+      <!-- Рядок шляху -->
+      <div class="fm-pathbar">
+        <button class="btn btn-xs" id="btnGoUp">⬆ Вгору</button>
+        <div class="path-display" id="currentPathDisplay">C:\</div>
+      </div>
+
+      <!-- Заголовок таблиці файлів -->
+      <div class="fm-list-header" id="fmListHeader">
+        <div>Ім'я об'єкта</div>
+        <div>Розмір</div>
+        <div>Метадані</div>
+        <div>Атрибути / Права</div>
+      </div>
+
+      <!-- Список файлів та папок -->
+      <div class="fm-list" id="fmList"></div>
+
+      <!-- Інспектор вибраного файлу -->
+      <div class="selected-inspector" id="selectedInspector">
+        <div style="color: var(--text-muted);">Натисніть на файл або папку, щоб переглянути метадані, редагувати вміст чи змінити права.</div>
+      </div>
+    </section>
+
+    <!-- ПРАВА ПАНЕЛЬ: ВІЗУАЛІЗАТОР ДИСКА "ПІД КАПОТОМ" -->
+    <section class="panel" aria-label="Візуалізатор секторів диска">
+      <div class="panel-header">
+        <div class="panel-title">💽 Візуалізатор диска «під капотом» (100 блоків × 4 КБ = 400 КБ)</div>
+        <span class="badge" id="diskStructureBadge">FAT16 Cluster Map</span>
+      </div>
+
+      <!-- Телеметрія диска -->
+      <div class="disk-telemetry">
+        <div class="tele-box">
+          <div class="tele-label">Зайнято</div>
+          <div class="tele-val" id="teleUsed">0 / 100</div>
+        </div>
+        <div class="tele-box">
+          <div class="tele-label">Вільно</div>
+          <div class="tele-val" id="teleFree">100 бл.</div>
+        </div>
+        <div class="tele-box">
+          <div class="tele-label">Фрагментація</div>
+          <div class="tele-val" id="teleFrag">0%</div>
+        </div>
+        <div class="tele-box">
+          <div class="tele-label">Метадані / Журнал</div>
+          <div class="tele-val" id="teleMeta">0 бл.</div>
+        </div>
+      </div>
+
+      <!-- Сітка 10x10 блоків -->
+      <div class="disk-grid-wrapper">
+        <div class="disk-grid" id="diskGrid"></div>
+      </div>
+
+      <!-- Легенда -->
+      <div class="disk-legend">
+        <div class="legend-item"><span class="legend-box" style="background: var(--block-sys);"></span> Системна область</div>
+        <div class="legend-item"><span class="legend-box" style="background: #3b82f6;"></span> Дані файлу</div>
+        <div class="legend-item"><span class="legend-box" style="border: 2px dashed #f59e0b;"></span> Фрагментований</div>
+        <div class="legend-item"><span class="legend-box" style="background: #0284c7; background-image: repeating-linear-gradient(-45deg, rgba(255,255,255,.35), rgba(255,255,255,.35) 3px, transparent 3px, transparent 6px);"></span> CoW Спільний (APFS)</div>
+        <div class="legend-item"><span class="legend-box" style="background: var(--block-free);"></span> Вільний сектор</div>
+      </div>
+
+      <!-- Живий інспектор сектора при наведенні -->
+      <div class="sector-live-bar" id="sectorLiveBar">
+        Наведіть курсор на будь-який сектор сітки, щоб побачити таблицю розміщення, вказівники та HEX/текст вмісту.
+      </div>
+    </section>
+  </main>
+
+  <!-- ЖУРНАЛ ОПЕРАЦІЙ -->
+  <section class="event-log-bar">
+    <div class="log-header">
+      <span>📟 Системний журнал драйвера ФС (Real-Time Kernel Log)</span>
+      <span id="logCounter">Подій: 0</span>
+    </div>
+    <div class="log-entries" id="logEntries"></div>
+  </section>
+
+  <!-- ПЛАВАЮЧА ПІДКАЗКА ДЛЯ СЕКТОРІВ -->
+  <div class="floating-tooltip" id="floatingTooltip"></div>
+
+  <!-- МОДАЛЬНЕ ВІКНО ДЛЯ СТВОРЕННЯ / РЕДАГУВАННЯ / АНАЛІЗУ -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal-card">
+      <div class="modal-head">
+        <span id="modalTitle">Вікно</span>
+        <button class="btn btn-xs" id="modalCloseBtn">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot" id="modalFoot"></div>
+    </div>
+  </div>
+
+  <script>
+    /* =====================================================================
+       КОНФІГУРАЦІЯ ТА ДОВІДНИК ФАЙЛОВИХ СИСТЕМ
+       ===================================================================== */
+    const TOTAL_BLOCKS = 100; // 100 кластерів/блоків по 4 КБ (400 КБ диск)
+    const BYTES_PER_BLOCK = 64; // Для наочності симулятора: кожні 64 символи тексту = 1 блок на диску (4 КБ віртуально)
+
+    const FILE_COLORS = [
+      "#2563eb", "#059669", "#d97706", "#7c3aed",
+      "#db2777", "#0891b2", "#65a30d", "#ea580c",
+      "#4f46e5", "#0d9488", "#ca8a04", "#9333ea"
+    ];
+
+    const FS_METADATA = {
+      fat16: {
+        name: "FAT12 / FAT16",
+        year: "1980 / 1984 (MS-DOS)",
+        maxFile: "2 ГБ (FAT16) / 32 МБ (FAT12)",
+        maxVolume: "2 ГБ (кластери до 32 КБ)",
+        feature: "Проста таблиця зв'язаних кластерів (FAT). Імена лише 8.3 (НАЗВА.TXT), немає прав доступу та журналювання — висока схильність до фрагментації та втрати даних при збоях.",
+        windowTitle: "C:\\ — NORTON COMMANDER (FAT16)",
+        ruleBadge: "Обмеження імен: 8.3 (UPPERCASE)",
+        diskBadge: "Boot Sector + Таблиця кластерів FAT16",
+        sysBlocks: [
+          { idx: 0, label: "BOOT", desc: "Завантажувальний сектор (BPB)" },
+          { idx: 1, label: "FAT1", desc: "Таблиця розміщення файлів №1" },
+          { idx: 2, label: "FAT2", desc: "Резервна копія таблиці FAT №2" },
+          { idx: 3, label: "ROOT", desc: "Кореневий каталог (Root Directory)" }
+        ]
+      },
+      ntfs: {
+        name: "NTFS (New Technology File System)",
+        year: "1993 (Windows NT / 10 / 11)",
+        maxFile: "16 ТБ (теоретично до 16 ЕБ)",
+        maxVolume: "256 ТБ — 8 ПБ",
+        feature: "Усе є файлом у Головній таблиці файлів ($MFT). Підтримує довгі імена Unicode, ACL-права доступу, прозоре стиснення блоків (LZNT1) та журналювання транзакцій ($LogFile).",
+        windowTitle: "Локальний диск (C:) — Провідник Windows (NTFS)",
+        ruleBadge: "MFT + ACL Права + Стиснення + $LogFile",
+        diskBadge: "Boot + $MFT (Master File Table) + $LogFile",
+        sysBlocks: [
+          { idx: 0, label: "BOOT", desc: "NTFS Boot Sector ($Boot)" },
+          { idx: 1, label: "$MFT", desc: "Master File Table (записи 0..15)" },
+          { idx: 2, label: "$MFT", desc: "Master File Table (користувацькі записи)" },
+          { idx: 3, label: "$LOG", desc: "Журнал транзакцій ($LogFile)" },
+          { idx: 4, label: "$BIT", desc: "Бітова карта вільних кластерів ($Bitmap)" }
+        ]
+      },
+      ext4: {
+        name: "ext4 (Fourth Extended Filesystem)",
+        year: "2008 (Ядро Linux 2.6.28)",
+        maxFile: "16 ТБ",
+        maxVolume: "1 ЕБ (Ексабайт)",
+        feature: "Використовує індексні дескриптори (inode) та екстенти (extents). Підтримує POSIX-права (rwxr-xr-x), жорсткі посилання (кілька імен на 1 inode), символічні посилання та журнал JBD2.",
+        windowTitle: "/home/user — Файли GNOME / Linux (ext4)",
+        ruleBadge: "Inodes + POSIX (rwxr-xr-x) + Hard/Sym Links",
+        diskBadge: "Superblock + Таблиця Inode + Журнал JBD2",
+        sysBlocks: [
+          { idx: 0, label: "SUPR", desc: "Superblock (параметри розділу ext4)" },
+          { idx: 1, label: "GDT", desc: "Дескриптори груп блоків (Block Group)" },
+          { idx: 2, label: "INOD", desc: "Таблиця індексних дескрипторів (Inode Table)" },
+          { idx: 3, label: "INOD", desc: "Таблиця індексних дескрипторів (Inode Table)" },
+          { idx: 4, label: "JBD2", desc: "Журнал блочного пристрою (Journaling)" }
+        ]
+      },
+      apfs: {
+        name: "APFS (Apple File System)",
+        year: "2017 (macOS High Sierra / iOS)",
+        maxFile: "8 ЕБ (Ексабайт)",
+        maxVolume: "8 ЕБ",
+        feature: "Архітектура Copy-on-Write (CoW) для SSD. Клонування файлів займає 0 додаткових блоків, доки дані не зміняться. Підтримує миттєві знімки стану (Snapshots) та атомарні коміти.",
+        windowTitle: "Macintosh HD — Finder (APFS)",
+        ruleBadge: "Copy-on-Write (CoW) + Snapshots",
+        diskBadge: "Container Superblock + Object Map + CoW Blocks",
+        sysBlocks: [
+          { idx: 0, label: "NXSB", desc: "Container Superblock (головний заголовок)" },
+          { idx: 1, label: "OMAP", desc: "Object Map (B-дерево віртуальних адрес)" },
+          { idx: 2, label: "CKPT", desc: "Checkpoint Area (атомарні стани CoW)" },
+          { idx: 3, label: "SMAP", desc: "Space Manager (карта вільного простору)" }
+        ]
+      }
+    };
+
+    /* =====================================================================
+       СТАН ВІРТУАЛЬНОГО ДИСКА ТА ФАЙЛОВОЇ СИСТЕМИ
+       ===================================================================== */
+    let currentFS = "fat16";
+    let stateByFS = {}; // Зберігає окремий стан для кожної з 4 ФС
+    let hoveredBlockIdx = null;
+    let colorCursor = 0;
+
+    function nextColor() {
+      const c = FILE_COLORS[colorCursor % FILE_COLORS.length];
+      colorCursor++;
+      return c;
+    }
+
+    // Розрахунок кількості блоків на основі довжини тексту та стиснення NTFS
+    function calcNeededBlocks(content, compressed = false) {
+      const len = (content || "").length;
+      let rawBlocks = Math.max(1, Math.ceil(len / BYTES_PER_BLOCK));
+      if (compressed && rawBlocks > 1) {
+        rawBlocks = Math.max(1, Math.ceil(rawBlocks * 0.55));
+      }
+      return rawBlocks;
+    }
+
+    // Ініціалізація стану кожної ФС із попередньо заповненими прикладами
+    function createInitialState(fsKey) {
+      colorCursor = 0;
+      const sysBlocks = FS_METADATA[fsKey].sysBlocks;
+      const disk = Array.from({ length: TOTAL_BLOCKS }, (_, i) => {
+        const sys = sysBlocks.find(s => s.idx === i);
+        if (sys) {
+          return {
+            index: i,
+            type: "system",
+            label: sys.label,
+            desc: sys.desc,
+            owners: [], // масив id файлів
+            dataSlice: "",
+            corrupted: false,
+            snapshotLocked: false
+          };
+        }
+        return {
+          index: i,
+          type: "free",
+          label: "",
+          desc: "Вільний сектор",
+          owners: [],
+          dataSlice: "",
+          corrupted: false,
+          snapshotLocked: false
+        };
+      });
+
+      const state = {
+        fs: fsKey,
+        cwd: "root",
+        selectedId: null,
+        nextId: 100,
+        nextInode: 1024,
+        hasCorruption: false,
+        snapshot: null, // Для APFS: збережений знімок
+        logs: [],
+        items: [
+          {
+            id: "root",
+            parentId: null,
+            name: fsKey === "fat16" ? "C:\\" : fsKey === "ntfs" ? "C:\\" : fsKey === "ext4" ? "/home/user" : "/Users/mac",
+            isDir: true,
+            blocks: [],
+            color: "#64748b",
+            metaId: fsKey === "ext4" ? 2 : 5,
+            perms: fsKey === "ext4" ? "rwxr-xr-x" : "RW",
+            hidden: false,
+            system: false,
+            compressed: false,
+            symlinkTarget: null
+          }
+        ]
+      };
+
+      // Допоміжна функція початкового заповнення
+      const seedFolder = (name) => {
+        const id = "item_" + (++state.nextId);
+        state.items.push({
+          id,
+          parentId: "root",
+          name,
+          isDir: true,
+          blocks: [],
+          color: "#eab308",
+          metaId: ++state.nextInode,
+          perms: fsKey === "ext4" ? "rwxr-xr-x" : "RW",
+          hidden: false,
+          system: false,
+          compressed: false,
+          symlinkTarget: null
+        });
+        return id;
+      };
+
+      const seedFile = (parentId, name, content, opts = {}) => {
+        const id = "item_" + (++state.nextId);
+        const color = nextColor();
+        const blocksNeeded = calcNeededBlocks(content, opts.compressed);
+        const allocated = [];
+        for (let b = 0; b < TOTAL_BLOCKS && allocated.length < blocksNeeded; b++) {
+          if (disk[b].type === "free") {
+            const sliceStart = allocated.length * BYTES_PER_BLOCK;
+            disk[b].type = "data";
+            disk[b].owners = [id];
+            disk[b].dataSlice = content.slice(sliceStart, sliceStart + BYTES_PER_BLOCK);
+            allocated.push(b);
+          }
+        }
+        state.items.push({
+          id,
+          parentId,
+          name,
+          isDir: false,
+          content,
+          blocks: allocated,
+          color,
+          metaId: ++state.nextInode,
+          perms: opts.perms || (fsKey === "ext4" ? "rw-r--r--" : "RW"),
+          hidden: !!opts.hidden,
+          system: !!opts.system,
+          compressed: !!opts.compressed,
+          symlinkTarget: opts.symlinkTarget || null
+        });
+        return id;
+      };
+
+      if (fsKey === "fat16") {
+        const docsId = seedFolder("DOKUMENT");
+        seedFile("root", "AUTOEXEC.BAT", "@ECHO OFF\nPROMPT $P$G\nPATH C:\\DOS;C:\\NC\nLH KEYBUK.COM\nNC.EXE\n");
+        seedFile("root", "CONFIG.SYS", "DEVICE=C:\\DOS\\HIMEM.SYS\nDOS=HIGH,UMB\nFILES=40\nBUFFERS=20\n");
+        seedFile("root", "ZVIT1989.TXT", "Річний звіт обчислювального центру за 1989 рік. Усі дані зберігаються у 16-бітних кластерах таблиці FAT. При видаленні файлів виникають дірки, які призводять до фрагментації диска.");
+        seedFile(docsId, "LYST.TXT", "Привіт із 1980-х! У FAT16 імена файлів обмежені форматом 8.3 (8 символів імені та 3 символи розширення).");
+      } else if (fsKey === "ntfs") {
+        const docsId = seedFolder("Робочі документи");
+        seedFile("root", "Звіт_Архітектура_NTFS.docx", "NTFS використовує Головну таблицю файлів ($MFT), де кожен файл описується записом розміром 1024 байти. Малі файли можуть зберігатися прямо всередині MFT (resident), а великі — у кластерах екстентів.");
+        const compId = seedFile("root", "Архів_Логів_Сервера.log", "2026-11-25 INFO: NTFS Compression (LZNT1) активне. Повторювані текстові блоки стискаються на льоту, економлячи фізичні кластери на накопичувачі без зміни логічного розміру файлу для програм!", { compressed: true });
+        seedFile("root", "pagefile.sys", "Системний файл віртуальної пам'яті Windows. Захищений правами System/Admin.", { hidden: true, system: true, perms: "Admin" });
+        seedFile(docsId, "Бюджет_2026.txt", "Кошторис модернізації серверної інфраструктури та переходу на відмовостійкі сховища.");
+        state.selectedId = compId;
+      } else if (fsKey === "ext4") {
+        const projId = seedFolder("projects");
+        const mainId = seedFile("root", "kernel_notes.txt", "Файлова система ext4 розподіляє простір через екстенти (діапазони суміжних блоків), що суттєво зменшує фрагментацію порівняно з ext2/ext3. Кожен файл має унікальний номер inode.");
+        seedFile("root", "deploy.sh", "#!/bin/bash\necho 'Перевірка журналу JBD2 та монтування розділу /dev/nvme0n1p2'\ndf -hT /home\n", { perms: "rwxr-xr-x" });
+        // Жорстке посилання на kernel_notes.txt (той самий inode і ті самі блоки!)
+        const orig = state.items.find(x => x.id === mainId);
+        const hardId = "item_" + (++state.nextId);
+        state.items.push({
+          id: hardId,
+          parentId: "root",
+          name: "kernel_hardlink.txt",
+          isDir: false,
+          content: orig.content,
+          blocks: orig.blocks, // Спільний масив блоків
+          color: orig.color,
+          metaId: orig.metaId, // Той самий inode!
+          perms: orig.perms,
+          hidden: false,
+          system: false,
+          compressed: false,
+          symlinkTarget: null
+        });
+        orig.blocks.forEach(bIdx => disk[bIdx].owners.push(hardId));
+        // Символічне посилання
+        seedFile("root", "notes_symlink", "-> /home/user/kernel_notes.txt", { perms: "rwxrwxrwx", symlinkTarget: "kernel_notes.txt" });
+        seedFile(projId, "Makefile", "all:\n\tgcc -O2 fs_driver.c -o fs_driver\n");
+      } else if (fsKey === "apfs") {
+        const mediaId = seedFolder("Проєкти_macOS");
+        const srcId = seedFile("root", "Презентація_APFS.key", "Apple File System (APFS) розроблена спеціально для флеш-пам'яті (SSD). Завдяки технології Copy-on-Write (CoW) миттєве дублювання файлу не копіює фізичні блоки даних, а створює новий покажчик на ті самі блоки!");
+        seedFile("root", "Нотатки_Архітектора.txt", "Метадані APFS захищені атомарними контрольними точками (Checkpoints). При раптовому вимкненні живлення система миттєво відкочується до останнього валідного стану.");
+        seedFile(mediaId, "Swift_App_Config.json", "{\"filesystem\": \"APFS\", \"copyOnWrite\": true, \"snapshots\": \"supported\"}");
+        state.selectedId = srcId;
+      }
+
+      disk.forEach((blk, idx) => {
+        if (blk.type === "data") {
+          // Оновлюємо зрізи тексту
+        }
+      });
+
+      state.disk = disk;
+      addLog(state, `Змонтовано том ${FS_METADATA[fsKey].name}. Готово до роботи.`, "ok");
+      return state;
+    }
+
+    function getState() {
+      if (!stateByFS[currentFS]) {
+        stateByFS[currentFS] = createInitialState(currentFS);
+      }
+      return stateByFS[currentFS];
+    }
+
+    function addLog(st, msg, level = "info") {
+      const now = new Date();
+      const ts = now.toTimeString().split(" ")[0];
+      st.logs.unshift({ ts, msg, level });
+      if (st.logs.length > 40) st.logs.pop();
+    }
+
+    /* =====================================================================
+       ВАЛІДАЦІЯ ТА ПРАВИЛА ФАЙЛОВИХ СИСТЕМ
+       ===================================================================== */
+    function sanitizeFilename(rawName, isDir, st) {
+      let name = (rawName || "").trim();
+      if (!name) return { valid: false, error: "Ім'я не може бути порожнім." };
+
+      if (st.fs === "fat16") {
+        // Транслітерація кирилиці для автентичного MS-DOS 8.3
+        const map = {
+          'А':'A','Б':'B','В':'V','Г':'H','Ґ':'G','Д':'D','Е':'E','Є':'YE','Ж':'ZH','З':'Z',
+          'И':'Y','І':'I','Ї':'YI','Й':'Y','К':'K','Л':'L','М':'M','Н':'N','О':'O','П':'P',
+          'Р':'R','С':'S','Т':'T','У':'U','Ф':'F','Х':'KH','Ц':'TS','Ч':'CH','Ш':'SH','Щ':'SHCH',
+          'Ь':'','Ю':'YU','Я':'YA'
+        };
+        let upper = name.toUpperCase().split("").map(ch => map[ch] !== undefined ? map[ch] : ch).join("");
+        upper = upper.replace(/[^A-Z0-9._-]/g, "_");
+
+        const parts = upper.split(".");
+        let base = parts[0].slice(0, 8) || "FILE";
+        let ext = parts.length > 1 ? parts.slice(1).join("").slice(0, 3) : (isDir ? "" : "TXT");
+        const formatted = ext ? `${base}.${ext}` : base;
+
+        const wasModified = formatted !== name;
+        return {
+          valid: true,
+          name: formatted,
+          warning: wasModified
+            ? `FAT16 вимагає формат 8.3 (ASCII): ім'я «${name}» автоматично перетворено на «${formatted}».`
+            : null
+        };
+      }
+
+      // NTFS, ext4, APFS підтримують довгі імена Unicode
+      if (name.includes("/") || name.includes("\\")) {
+        return { valid: false, error: "Ім'я файлу не може містити символи / або \\." };
+      }
+      if (name.length > 48) {
+        name = name.slice(0, 48);
+      }
+      return { valid: true, name, warning: null };
+    }
+
+    /* =====================================================================
+       ОПЕРАЦІЇ З БЛОКАМИ ДИСКА (АЛОКАЦІЯ, ЗВІЛЬНЕННЯ, CoW)
+       ===================================================================== */
+    function allocateFreeBlocks(st, count, ownerId, content) {
+      const allocated = [];
+      for (let i = 0; i < TOTAL_BLOCKS && allocated.length < count; i++) {
+        if (st.disk[i].type === "free") {
+          const sliceStart = allocated.length * BYTES_PER_BLOCK;
+          st.disk[i].type = "data";
+          st.disk[i].owners = [ownerId];
+          st.disk[i].dataSlice = (content || "").slice(sliceStart, sliceStart + BYTES_PER_BLOCK);
+          st.disk[i].corrupted = false;
+          allocated.push(i);
+        }
+      }
+      return allocated;
+    }
+
+    function detachOwnerFromBlock(st, blockIdx, ownerId) {
+      const blk = st.disk[blockIdx];
+      if (!blk || blk.type !== "data") return;
+      blk.owners = blk.owners.filter(id => id !== ownerId);
+      if (blk.owners.length === 0 && !blk.snapshotLocked) {
+        blk.type = "free";
+        blk.dataSlice = "";
+        blk.corrupted = false;
+      }
+    }
+
+    function countFreeBlocks(st) {
+      return st.disk.filter(b => b.type === "free").length;
+    }
+
+    // Перевірка, чи є файл фрагментованим (його блоки не йдуть підряд +1)
+    function isFileFragmented(item) {
+      if (!item || item.isDir || item.blocks.length <= 1) return false;
+      for (let i = 1; i < item.blocks.length; i++) {
+        if (item.blocks[i] !== item.blocks[i - 1] + 1) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function calculateFragmentationPercent(st) {
+      const filesWithMultiBlocks = st.items.filter(f => !f.isDir && f.blocks.length > 1);
+      if (filesWithMultiBlocks.length === 0) return 0;
+      let brokenLinks = 0;
+      let totalLinks = 0;
+      filesWithMultiBlocks.forEach(f => {
+        for (let i = 1; i < f.blocks.length; i++) {
+          totalLinks++;
+          if (f.blocks[i] !== f.blocks[i - 1] + 1) brokenLinks++;
+        }
+      });
+      return totalLinks === 0 ? 0 : Math.round((brokenLinks / totalLinks) * 100);
+    }
+
+    /* =====================================================================
+       CRUD ОПЕРАЦІЇ У ФАЙЛОВОМУ МЕНЕДЖЕРІ
+       ===================================================================== */
+    function createItem({ name, isDir, content = "" }) {
+      const st = getState();
+      const check = sanitizeFilename(name, isDir, st);
+      if (!check.valid) {
+        showNotification("Помилка валідації", check.error);
+        return false;
+      }
+
+      // Перевірка дублікатів у поточній папці
+      const exists = st.items.some(i => i.parentId === st.cwd && i.name === check.name);
+      if (exists) {
+        showNotification("Конфлікт імен", `Об'єкт з ім'ям «${check.name}» вже існує у цій папці.`);
+        return false;
+      }
+
+      const id = "item_" + (++st.nextId);
+      let blocks = [];
+      if (!isDir) {
+        const needed = calcNeededBlocks(content, false);
+        if (countFreeBlocks(st) < needed) {
+          showNotification("Недостатньо місця на диску!", `Потрібно ${needed} бл. (${needed * 4} КБ), але вільно лише ${countFreeBlocks(st)} бл.`);
+          return false;
+        }
+        blocks = allocateFreeBlocks(st, needed, id, content);
+      }
+
+      const newItem = {
+        id,
+        parentId: st.cwd,
+        name: check.name,
+        isDir,
+        content: isDir ? "" : content,
+        blocks,
+        color: isDir ? "#eab308" : nextColor(),
+        metaId: ++st.nextInode,
+        perms: st.fs === "ext4" ? (isDir ? "rwxr-xr-x" : "rw-r--r--") : "RW",
+        hidden: false,
+        system: false,
+        compressed: false,
+        symlinkTarget: null
+      };
+
+      st.items.push(newItem);
+      st.selectedId = id;
+
+      if (check.warning) {
+        addLog(st, check.warning, "warn");
+      }
+      addLog(st, `Створено ${isDir ? "папку" : "файл"} «${check.name}»${!isDir ? ` (${blocks.length} бл.: [${blocks.join(", ")}])` : ""}.`, "ok");
+      renderAll();
+      return true;
+    }
+
+    function updateFileContent(itemId, newContent) {
+      const st = getState();
+      const item = st.items.find(i => i.id === itemId);
+      if (!item || item.isDir) return;
+
+      if (st.fs === "ntfs" && item.perms === "Read") {
+        showNotification("Відмовлено у доступі (NTFS ACL)", "Файл має атрибут «Тільки читання» (Read). Змініть права доступу перед редагуванням.");
+        return;
+      }
+      if (st.fs === "ext4" && !item.perms.includes("w")) {
+        showNotification("Permission Denied (ext4)", `Поточні POSIX-права (${item.perms}) забороняють запис у цей файл.`);
+        return;
+      }
+
+      // Якщо це жорстке посилання у ext4 — оновлюємо всі файли з тим самим inode!
+      if (st.fs === "ext4") {
+        const linkedItems = st.items.filter(x => !x.isDir && x.metaId === item.metaId);
+        const needed = calcNeededBlocks(newContent, false);
+        const oldBlocks = [...item.blocks];
+
+        // Звільняємо старі блоки від усіх хардлінків
+        oldBlocks.forEach(bIdx => {
+          linkedItems.forEach(li => detachOwnerFromBlock(st, bIdx, li.id));
+        });
+
+        if (countFreeBlocks(st) < needed) {
+          // Відновлюємо якщо не вистачило місця
+          const restored = allocateFreeBlocks(st, oldBlocks.length, item.id, item.content);
+          linkedItems.forEach(li => {
+            li.blocks = restored;
+            restored.forEach(b => { if (!st.disk[b].owners.includes(li.id)) st.disk[b].owners.push(li.id); });
+          });
+          showNotification("Помилка запису (ENOSPC)", "На диску недостатньо вільних блоків для нового розміру файлу.");
+          renderAll();
+          return;
+        }
+
+        const newBlocks = allocateFreeBlocks(st, needed, item.id, newContent);
+        linkedItems.forEach(li => {
+          li.content = newContent;
+          li.blocks = [...newBlocks];
+          newBlocks.forEach((bIdx, idx) => {
+            if (!st.disk[bIdx].owners.includes(li.id)) st.disk[bIdx].owners.push(li.id);
+            st.disk[bIdx].dataSlice = newContent.slice(idx * BYTES_PER_BLOCK, (idx + 1) * BYTES_PER_BLOCK);
+          });
+        });
+
+        addLog(st, `ext4: Оновлено inode #${item.metaId} (${linkedItems.length} hardlink-імен). Нові блоки: [${newBlocks.join(", ")}].`, "info");
+        renderAll();
+        return;
+      }
+
+      // Якщо це APFS Copy-on-Write: спільні блоки НЕ перезаписуються на місці!
+      if (st.fs === "apfs") {
+        const needed = calcNeededBlocks(newContent, false);
+        const oldBlocks = [...item.blocks];
+
+        // Перевіряємо, скільки блоків спільні з іншими клонами або знімком
+        const sharedCount = oldBlocks.filter(bIdx => st.disk[bIdx].owners.length > 1 || st.disk[bIdx].snapshotLocked).length;
+        if (sharedCount > 0 && countFreeBlocks(st) < needed) {
+          showNotification("Недостатньо місця для Copy-on-Write", "Спільні блоки захищені CoW/Snapshot, а вільних блоків для запису змін не вистачає.");
+          return;
+        }
+
+        // Від'єднуємо цей файл від старих блоків (інші клони зберігають свої дані!)
+        oldBlocks.forEach(bIdx => detachOwnerFromBlock(st, bIdx, item.id));
+
+        if (countFreeBlocks(st) < needed) {
+          showNotification("Помилка місця на диску", "Недостатньо вільних блоків.");
+          renderAll();
+          return;
+        }
+
+        const newBlocks = allocateFreeBlocks(st, needed, item.id, newContent);
+        item.content = newContent;
+        item.blocks = newBlocks;
+
+        addLog(
+          st,
+          sharedCount > 0
+            ? `APFS Copy-on-Write: Записано зміни у нові блоки [${newBlocks.join(", ")}]. Оригінальні спільні блоки залишились незмінними для клонів/знімку!`
+            : `APFS: Файл «${item.name}» оновлено атомарно (блоки [${newBlocks.join(", ")}]).`,
+          "ok"
+        );
+        renderAll();
+        return;
+      }
+
+      // Стандартна поведінка для FAT16 та NTFS
+      const needed = calcNeededBlocks(newContent, item.compressed);
+      const oldBlocks = [...item.blocks];
+      oldBlocks.forEach(bIdx => detachOwnerFromBlock(st, bIdx, item.id));
+
+      if (countFreeBlocks(st) < needed) {
+        item.blocks = allocateFreeBlocks(st, oldBlocks.length, item.id, item.content);
+        showNotification("Диск заповнено!", `Недостатньо кластерів для збереження ${needed} бл.`);
+        renderAll();
+        return;
+      }
+
+      item.content = newContent;
+      item.blocks = allocateFreeBlocks(st, needed, item.id, newContent);
+      addLog(st, `Збережено «${item.name}» (${newContent.length} симв. -> ${item.blocks.length} бл.: [${item.blocks.join(", ")}]).`, "info");
+      renderAll();
+    }
+
+    function copyOrCloneItem(itemId) {
+      const st = getState();
+      const orig = st.items.find(i => i.id === itemId);
+      if (!orig || orig.isDir) return;
+
+      if (orig.symlinkTarget) {
+        showNotification("Символічне посилання", "Символічне посилання вказує лише на шлях. Клонуйте цільовий файл.");
+        return;
+      }
+
+      const rawCopyName = st.fs === "fat16"
+        ? orig.name.replace(/(\.[^.]+)?$/, "_CP$1")
+        : orig.name.replace(/(\.[^.]+)?$/, "_копія$1");
+      const check = sanitizeFilename(rawCopyName, false, st);
+      let finalName = check.name;
+      let counter = 1;
+      while (st.items.some(i => i.parentId === orig.parentId && i.name === finalName)) {
+        finalName = st.fs === "fat16" ? `COPY_${counter++}.TXT` : `${orig.name}_(${counter++})`;
+      }
+
+      const newId = "item_" + (++st.nextId);
+
+      // У APFS: миттєве CoW-клонування (0 нових фізичних блоків!)
+      if (st.fs === "apfs") {
+        const clone = {
+          id: newId,
+          parentId: orig.parentId,
+          name: finalName,
+          isDir: false,
+          content: orig.content,
+          blocks: [...orig.blocks], // Вказує на ті самі фізичні блоки!
+          color: nextColor(),
+          metaId: ++st.nextInode,
+          perms: orig.perms,
+          hidden: false,
+          system: false,
+          compressed: false,
+          symlinkTarget: null
+        };
+        orig.blocks.forEach(bIdx => {
+          if (!st.disk[bIdx].owners.includes(newId)) {
+            st.disk[bIdx].owners.push(newId);
+          }
+        });
+        st.items.push(clone);
+        st.selectedId = newId;
+        addLog(st, `APFS CoW Clone: Створено «${finalName}» за 0 мс! Використано 0 додаткових блоків (спільні сектори: [${clone.blocks.join(", ")}]).`, "ok");
+        renderAll();
+        return;
+      }
+
+      // В інших ФС (FAT16, NTFS, ext4): звичайне фізичне копіювання даних у нові блоки
+      const needed = orig.blocks.length;
+      if (countFreeBlocks(st) < needed) {
+        showNotification("Недостатньо місця для копіювання", `Потрібно ${needed} вільних блоків для повної фізичної копії файлу.`);
+        return;
+      }
+
+      const allocated = allocateFreeBlocks(st, needed, newId, orig.content);
+      const copy = {
+        id: newId,
+        parentId: orig.parentId,
+        name: finalName,
+        isDir: false,
+        content: orig.content,
+        blocks: allocated,
+        color: nextColor(),
+        metaId: ++st.nextInode,
+        perms: orig.perms,
+        hidden: false,
+        system: false,
+        compressed: orig.compressed,
+        symlinkTarget: null
+      };
+      st.items.push(copy);
+      st.selectedId = newId;
+      addLog(st, `Скопійовано «${orig.name}» -> «${finalName}». Виділено ${allocated.length} нових блоків: [${allocated.join(", ")}].`, "info");
+      renderAll();
+    }
+
+    function deleteItem(itemId) {
+      const st = getState();
+      const item = st.items.find(i => i.id === itemId);
+      if (!item || item.id === "root") return;
+
+      if (st.fs === "ntfs" && item.system) {
+        showNotification("Системний файл Windows", "Видалення системного файлу заблоковано політикою безпеки NTFS.");
+        return;
+      }
+
+      // Рекурсивне видалення папки
+      const toDelete = [];
+      const collect = (id) => {
+        toDelete.push(id);
+        st.items.filter(x => x.parentId === id).forEach(child => collect(child.id));
+      };
+      collect(itemId);
+
+      toDelete.forEach(delId => {
+        const obj = st.items.find(x => x.id === delId);
+        if (obj && !obj.isDir) {
+          obj.blocks.forEach(bIdx => detachOwnerFromBlock(st, bIdx, delId));
+        }
+      });
+
+      st.items = st.items.filter(x => !toDelete.includes(x.id));
+      if (toDelete.includes(st.selectedId)) st.selectedId = null;
+
+      addLog(st, `Видалено «${item.name}». Звільнені сектори позначено як вільні у карті диска.`, "warn");
+      renderAll();
+    }
+
+    function renameItem(itemId, newRawName) {
+      const st = getState();
+      const item = st.items.find(i => i.id === itemId);
+      if (!item || item.id === "root") return;
+
+      const check = sanitizeFilename(newRawName, item.isDir, st);
+      if (!check.valid) {
+        showNotification("Помилка перейменування", check.error);
+        return;
+      }
+      if (st.items.some(i => i.parentId === item.parentId && i.id !== item.id && i.name === check.name)) {
+        showNotification("Ім'я зайняте", `У цій папці вже є «${check.name}».`);
+        return;
+      }
+
+      const oldName = item.name;
+      item.name = check.name;
+      if (check.warning) addLog(st, check.warning, "warn");
+      addLog(st, `Перейменовано «${oldName}» -> «${check.name}» (фізичні блоки не переміщувались).`, "info");
+      renderAll();
+    }
+
+    /* =====================================================================
+       СПЕЦИФІЧНІ ФУНКЦІЇ ДЛЯ NTFS, EXT4 ТА APFS
+       ===================================================================== */
+    function toggleNtfsCompression(itemId) {
+      const st = getState();
+      const item = st.items.find(i => i.id === itemId);
+      if (!item || item.isDir) return;
+
+      const nextComp = !item.compressed;
+      const needed = calcNeededBlocks(item.content, nextComp);
+      const oldBlocks = [...item.blocks];
+
+      oldBlocks.forEach(bIdx => detachOwnerFromBlock(st, bIdx, item.id));
+      if (countFreeBlocks(st) < needed) {
+        item.blocks = allocateFreeBlocks(st, oldBlocks.length, item.id, item.content);
+        showNotification("Недостатньо місця для розпакування", "Не вистачає вільних кластерів для розтискання файлу.");
+        renderAll();
+        return;
+      }
+
+      item.compressed = nextComp;
+      item.blocks = allocateFreeBlocks(st, needed, item.id, item.content);
+      addLog(
+        st,
+        nextComp
+          ? `NTFS Стиснення (LZNT1) увімкнено для «${item.name}»: розмір на диску зменшено з ${oldBlocks.length} до ${item.blocks.length} бл.!`
+          : `NTFS Стиснення вимкнено для «${item.name}»: файл тепер займає ${item.blocks.length} бл.`,
+        "ok"
+      );
+      renderAll();
+    }
+
+    function toggleNtfsHidden(itemId) {
+      const st = getState();
+      const item = st.items.find(i => i.id === itemId);
+      if (!item) return;
+      item.hidden = !item.hidden;
+      addLog(st, `NTFS Атрибут FILE_ATTRIBUTE_HIDDEN для «${item.name}»: ${item.hidden ? "Увімкнено" : "Вимкнено"}.`, "info");
+      renderAll();
+    }
+
+    function cycleNtfsPerms(itemId) {
+      const st = getState();
+      const item = st.items.find(i => i.id === itemId);
+      if (!item) return;
+      const order = ["RW", "Read", "Admin"];
+      item.perms = order[(order.indexOf(item.perms) + 1) % order.length];
+      addLog(st, `NTFS ACL змінено для «${item.name}» -> ${item.perms}.`, "info");
+      renderAll();
+    }
+
+    function cycleExt4Perms(itemId) {
+      const st = getState();
+      const item = st.items.find(i => i.id === itemId);
+      if (!item) return;
+      const order = ["rw-r--r--", "rwxr-xr-x", "r--r--r--", "rw-------"];
+      item.perms = order[(order.indexOf(item.perms) + 1) % order.length];
+      addLog(st, `chmod: права доступу inode #${item.metaId} («${item.name}») змінено на ${item.perms}.`, "info");
+      renderAll();
+    }
+
+    function createExt4Link(type) {
+      const st = getState();
+      const target = st.items.find(i => i.id === st.selectedId && !i.isDir);
+      if (!target) {
+        showNotification("Виберіть файл", "Спочатку виберіть існуючий файл у списку, на який потрібно створити посилання.");
+        return;
+      }
+
+      const linkName = type === "hard"
+        ? `${target.name.replace(/\.[^.]+$/, "")}_hard.link`
+        : `${target.name.replace(/\.[^.]+$/, "")}_sym`;
+
+      if (st.items.some(i => i.parentId === st.cwd && i.name === linkName)) {
+        showNotification("Посилання вже існує", `Об'єкт «${linkName}» вже створено.`);
+        return;
+      }
+
+      const id = "item_" + (++st.nextId);
+      if (type === "hard") {
+        // Жорстке посилання: той самий inode і ті самі блоки даних!
+        st.items.push({
+          id,
+          parentId: st.cwd,
+          name: linkName,
+          isDir: false,
+          content: target.content,
+          blocks: [...target.blocks],
+          color: target.color,
+          metaId: target.metaId,
+          perms: target.perms,
+          hidden: false,
+          system: false,
+          compressed: false,
+          symlinkTarget: null
+        });
+        target.blocks.forEach(bIdx => {
+          if (!st.disk[bIdx].owners.includes(id)) st.disk[bIdx].owners.push(id);
+        });
+        addLog(st, `ln: Створено жорстке посилання «${linkName}» -> inode #${target.metaId}. Блоки даних спільні з оригіналом!`, "ok");
+      } else {
+        // Символічне посилання: власний inode, 0 блоків даних (шлях зберігається в inode)
+        st.items.push({
+          id,
+          parentId: st.cwd,
+          name: linkName,
+          isDir: false,
+          content: `-> ${target.name}`,
+          blocks: [],
+          color: "#a855f7",
+          metaId: ++st.nextInode,
+          perms: "rwxrwxrwx",
+          hidden: false,
+          system: false,
+          compressed: false,
+          symlinkTarget: target.name
+        });
+        addLog(st, `ln -s: Створено символічне посилання «${linkName}» -> «${target.name}» (новий inode #${st.nextInode}, 0 блоків даних).`, "ok");
+      }
+      st.selectedId = id;
+      renderAll();
+    }
+
+    function createApfsSnapshot() {
+      const st = getState();
+      // Знімаємо старе блокування знімку
+      st.disk.forEach(b => { b.snapshotLocked = false; });
+
+      // Блокуємо поточні блоки даних як незмінні (immutable)
+      let lockedCount = 0;
+      st.disk.forEach(b => {
+        if (b.type === "data") {
+          b.snapshotLocked = true;
+          lockedCount++;
+        }
+      });
+
+      st.snapshot = {
+        timestamp: new Date().toTimeString().split(" ")[0],
+        items: JSON.parse(JSON.stringify(st.items)),
+        diskMeta: st.disk.map(b => ({
+          index: b.index,
+          type: b.type,
+          owners: [...b.owners],
+          dataSlice: b.dataSlice
+        }))
+      };
+
+      addLog(st, `APFS Snapshot створено о ${st.snapshot.timestamp}. Зафіксовано ${lockedCount} блоків (позначено 🔒).`, "ok");
+      renderAll();
+    }
+
+    function restoreApfsSnapshot() {
+      const st = getState();
+      if (!st.snapshot) return;
+
+      st.items = JSON.parse(JSON.stringify(st.snapshot.items));
+      st.snapshot.diskMeta.forEach((saved, idx) => {
+        if (st.disk[idx].type !== "system") {
+          st.disk[idx].type = saved.type;
+          st.disk[idx].owners = [...saved.owners];
+          st.disk[idx].dataSlice = saved.dataSlice;
+          st.disk[idx].snapshotLocked = saved.type === "data";
+          st.disk[idx].corrupted = false;
+        }
+      });
+      st.cwd = "root";
+      st.selectedId = null;
+      addLog(st, `APFS: Том миттєво відкочено до знімку від ${st.snapshot.timestamp}!`, "ok");
+      renderAll();
+    }
+
+    /* =====================================================================
+       ДЕФРАГМЕНТАЦІЯ, ТЕСТ ФРАГМЕНТАЦІЇ ТА СИМУЛЯЦІЯ ЗБОЮ ЖИВЛЕННЯ
+       ===================================================================== */
+    function runFragmentationDemo() {
+      const st = getState();
+      // Створюємо штучний сценарій: записуємо дрібні файли, видаляємо парні, записуємо великий файл у "дірки"
+      const tempIds = [];
+      for (let k = 1; k <= 4; k++) {
+        if (countFreeBlocks(st) < 2) break;
+        const id = "item_" + (++st.nextId);
+        const content = `Тимчасовий блок даних #${k} для створення фрагментації секторів на диску.`;
+        const blks = allocateFreeBlocks(st, 2, id, content);
+        st.items.push({
+          id,
+          parentId: "root",
+          name: st.fs === "fat16" ? `TEMP_${k}.TMP` : `temp_chunk_${k}.dat`,
+          isDir: false,
+          content,
+          blocks: blks,
+          color: nextColor(),
+          metaId: ++st.nextInode,
+          perms: st.fs === "ext4" ? "rw-r--r--" : "RW",
+          hidden: false,
+          system: false,
+          compressed: false,
+          symlinkTarget: null
+        });
+        tempIds.push(id);
+      }
+
+      // Видаляємо 1-й та 3-й, залишаючи "дірки" по 2 блоки
+      [tempIds[0], tempIds[2]].forEach(delId => {
+        if (!delId) return;
+        const obj = st.items.find(x => x.id === delId);
+        if (obj) {
+          obj.blocks.forEach(b => detachOwnerFromBlock(st, b, delId));
+          st.items = st.items.filter(x => x.id !== delId);
+        }
+      });
+
+      // Записуємо великий файл на 5 блоків, який розірветься по дірках!
+      if (countFreeBlocks(st) >= 5) {
+        const bigId = "item_" + (++st.nextId);
+        const bigText = "ВЕЛИКИЙ_ФРАГМЕНТОВАНИЙ_ФАЙЛ: Цей файл розбито на несуміжні кластери по всьому диску через наявність порожніх дірок після видалення попередніх файлів. Головка жорсткого диска змушена стрибати між секторами!";
+        const blks = allocateFreeBlocks(st, 5, bigId, bigText);
+        st.items.push({
+          id: bigId,
+          parentId: "root",
+          name: st.fs === "fat16" ? "FRAGDATA.BIN" : "Фрагментований_потік.bin",
+          isDir: false,
+          content: bigText,
+          blocks: blks,
+          color: "#ef4444",
+          metaId: ++st.nextInode,
+          perms: st.fs === "ext4" ? "rw-r--r--" : "RW",
+          hidden: false,
+          system: false,
+          compressed: false,
+          symlinkTarget: null
+        });
+        st.selectedId = bigId;
+      }
+
+      addLog(st, `Створено демонстраційну фрагментацію! Зверніть увагу на пунктирні рамки блоків на карті диска.`, "warn");
+      renderAll();
+    }
+
+    function runDefragmentation() {
+      const st = getState();
+      const fragBefore = calculateFragmentationPercent(st);
+
+      if (st.fs === "apfs") {
+        showNotification(
+          "APFS та оптимізація SSD",
+          "У сучасній APFS на флеш-накопичувачах (SSD) класична ручна дефрагментація не потрібна й навіть шкідлива (зношує комірки NAND), оскільки час доступу до будь-якого блоку однаковий (~0.1 мс), а Copy-on-Write автоматично групує нові записи."
+        );
+        return;
+      }
+
+      if (fragBefore === 0) {
+        showNotification("Диск уже оптимальний", "Рівень фрагментації становить 0%. Усі файли розміщені у суміжних секторах.");
+        return;
+      }
+
+      // Очищаємо всі блоки даних, зберігаючи прив'язку до знімків
+      const sysCount = FS_METADATA[st.fs].sysBlocks.length;
+      for (let i = sysCount; i < TOTAL_BLOCKS; i++) {
+        st.disk[i].type = "free";
+        st.disk[i].owners = [];
+        st.disk[i].dataSlice = "";
+        st.disk[i].corrupted = false;
+      }
+
+      // Перерозподіляємо файли підряд без дірок (зберігаючи спільні hardlinks у ext4)
+      const processedInodes = new Set();
+      let cursor = sysCount;
+
+      st.items.forEach(item => {
+        if (item.isDir || item.blocks.length === 0) return;
+
+        if (st.fs === "ext4" && processedInodes.has(item.metaId)) {
+          // Знаходимо вже дефрагментований hardlink
+          const sibling = st.items.find(x => x.id !== item.id && x.metaId === item.metaId);
+          if (sibling) {
+            item.blocks = [...sibling.blocks];
+            item.blocks.forEach(bIdx => {
+              if (!st.disk[bIdx].owners.includes(item.id)) st.disk[bIdx].owners.push(item.id);
+            });
+          }
+          return;
+        }
+
+        const len = item.blocks.length;
+        const newBlocks = [];
+        for (let k = 0; k < len && cursor < TOTAL_BLOCKS; k++) {
+          st.disk[cursor].type = "data";
+          st.disk[cursor].owners = [item.id];
+          st.disk[cursor].dataSlice = (item.content || "").slice(k * BYTES_PER_BLOCK, (k + 1) * BYTES_PER_BLOCK);
+          newBlocks.push(cursor);
+          cursor++;
+        }
+        item.blocks = newBlocks;
+        if (st.fs === "ext4") processedInodes.add(item.metaId);
+      });
+
+      addLog(st, `Дефрагментацію завершено! Фрагментацію знижено з ${fragBefore}% до 0%. Усі кластери вирівняно підряд.`, "ok");
+      renderAll();
+    }
+
+    function simulatePowerOutage() {
+      const st = getState();
+
+      if (st.fs === "fat16") {
+        // У FAT16 відсутній журнал: раптовий збій під час запису пошкоджує таблицю FAT!
+        const candidateFiles = st.items.filter(i => !i.isDir && i.blocks.length > 0);
+        if (candidateFiles.length > 0) {
+          const victim = candidateFiles[candidateFiles.length - 1];
+          const badBlockIdx = victim.blocks[victim.blocks.length - 1];
+          st.disk[badBlockIdx].corrupted = true;
+          st.disk[badBlockIdx].dataSlice = "▒▓█CORRUPT_FAT_ERR█▓▒";
+          victim.content = victim.content.slice(0, Math.max(10, victim.content.length - 25)) + " [ПОШКОДЖЕНО ЧЕРЕЗ ЗБІЙ FAT!]";
+        }
+        // Додатково створюємо "загублений кластер" (Lost Cluster) у вільному блоці
+        const freeBlk = st.disk.find(b => b.type === "free");
+        if (freeBlk) {
+          freeBlk.type = "data";
+          freeBlk.owners = ["LOST_CHAIN"];
+          freeBlk.corrupted = true;
+          freeBlk.dataSlice = "???ORPHAN_CLUSTER???";
+        }
+
+        st.hasCorruption = true;
+        addLog(st, "КРИТИЧНИЙ ЗБІЙ ЖИВЛЕННЯ (FAT16): Запис перервано! Виникли втрачені кластери та пошкодження ланцюжка FAT. Запустіть CHKDSK!", "err");
+        renderAll();
+
+        openModal(
+          "⚡ Раптове вимкнення живлення у FAT16!",
+          `
+            <div class="ai-section" style="border-color:#ef4444;">
+              <h4>❌ Чому виникло пошкодження даних?</h4>
+              <p>Файлова система <strong>FAT16 (1980-ті)</strong> не має журналу транзакцій. Коли живлення зникло посеред оновлення таблиці кластерів:</p>
+              <ul style="margin: 8px 0 8px 18px;">
+                <li>Частина кластерів залишилася поміченою як «зайнята» в таблиці FAT, але жоден файл на них не посилається (<strong>Lost Clusters</strong>).</li>
+                <li>Останній сектор активного файлу містить недописане «сміття».</li>
+              </ul>
+              <p>Натисніть кнопку <strong>«🛠️ Запустити CHKDSK / SCANDISK»</strong> на верхній панелі, щоб перевірити диск та виправити помилки таблиці!</p>
+            </div>
+          `,
+          [{ label: "Зрозуміло", primary: true, onClick: closeModal }]
+        );
+      } else {
+        // Сучасні журнальовані / CoW файлові системи: NTFS, ext4, APFS
+        const details = {
+          ntfs: {
+            title: "🛡️ NTFS: Відновлення через журнал $LogFile",
+            steps: [
+              "1. [ЗБІЙ] Живлення зникло під час зміни запису в $MFT та $Bitmap.",
+              "2. [ПЕРЕЗАПУСК] Драйвер ntfs.sys зчитує журнал транзакцій $LogFile (сектор #3).",
+              "3. [REDO / UNDO] Незавершену транзакцію виявлено без маркера COMMIT. Виконано відкат (Rollback) метаданих MFT.",
+              "4. [РЕЗУЛЬТАТ] 0 втрачених кластерів, цілісність файлової системи 100% збережено!"
+            ]
+          },
+          ext4: {
+            title: "🛡️ ext4: Відновлення через журнал JBD2",
+            steps: [
+              "1. [ЗБІЙ] Раптова втрата живлення під час оновлення таблиці inode та екстентів.",
+              "2. [ПЕРЕЗАПУСК] Ядро Linux запускає JBD2 (Journaling Block Device) із сектора #4.",
+              "3. [REPLAY] Перевірка контрольних сум (CRC32c) у журналі. Незакінчений коміт відкинуто.",
+              "4. [РЕЗУЛЬТАТ] Усі inode та жорсткі посилання консистентні, перевірка fsck не потрібна!"
+            ]
+          },
+          apfs: {
+            title: "🛡️ APFS: Атомарний захист Copy-on-Write",
+            steps: [
+              "1. [ЗБІЙ] Зникнення напруги під час запису нових блоків.",
+              "2. [ПЕРЕЗАПУСК] APFS ніколи не перезаписує існуючі метадані на місці (Copy-on-Write).",
+              "3. [CHECKPOINT] Оскільки новий Container Superblock не встиг зафіксуватися, система миттєво перемикається на попередній валідний Checkpoint (сектор #2).",
+              "4. [РЕЗУЛЬТАТ] Миттєве завантаження без жодного пошкодженого байта!"
+            ]
+          }
+        }[st.fs];
+
+        addLog(st, `${details.title} — цілісність даних успішно захищено.`, "ok");
+        openModal(
+          details.title,
+          `
+            <p style="margin-bottom:10px;">На відміну від застарілої FAT16, <strong>${FS_METADATA[st.fs].name}</strong> надійно захищена від раптового вимкнення живлення:</p>
+            ${details.steps.map(s => `<div class="journal-step">${s}</div>`).join("")}
+          `,
+          [{ label: "Чудово!", primary: true, onClick: closeModal }]
+        );
+      }
+    }
+
+    function runChkdskRepair() {
+      const st = getState();
+      let fixedBlocks = 0;
+
+      st.disk.forEach(blk => {
+        if (blk.corrupted) {
+          fixedBlocks++;
+          blk.corrupted = false;
+          if (blk.owners.includes("LOST_CHAIN")) {
+            blk.type = "free";
+            blk.owners = [];
+            blk.dataSlice = "";
+          } else {
+            blk.dataSlice = "[ВІДНОВЛЕНО_CHKDSK]";
+          }
+        }
+      });
+
+      st.items.forEach(item => {
+        if (!item.isDir && item.content.includes("[ПОШКОДЖЕНО ЧЕРЕЗ ЗБІЙ FAT!]")) {
+          item.content = item.content.replace(" [ПОШКОДЖЕНО ЧЕРЕЗ ЗБІЙ FAT!]", " (ланцюжок FAT усічено утилітою CHKDSK)");
+        }
+      });
+
+      st.hasCorruption = false;
+      addLog(st, `CHKDSK /F завершено: виправлено ${fixedBlocks} пошкоджених/загублених кластерів у таблиці FAT16.`, "ok");
+      renderAll();
+    }
+
+    /* =====================================================================
+       ВБУДОВАНИЙ ШІ-АНАЛІЗАТОР СТАНУ ДИСКА
+       ===================================================================== */
+    function runAiDiskAnalysis() {
+      const st = getState();
+      const sysCount = FS_METADATA[st.fs].sysBlocks.length;
+      const dataBlocks = st.disk.filter(b => b.type === "data");
+      const freeCount = countFreeBlocks(st);
+      const usedPercent = Math.round(((sysCount + dataBlocks.length) / TOTAL_BLOCKS) * 100);
+      const fragPercent = calculateFragmentationPercent(st);
+      const files = st.items.filter(i => !i.isDir);
+
+      // Підрахунок економії CoW / Стиснення
+      const logicalBlocksSum = files.reduce((acc, f) => acc + f.blocks.length, 0);
+      const physicalBlocksUsed = dataBlocks.length;
+      const savedBySharing = Math.max(0, logicalBlocksSum - physicalBlocksUsed);
+
+      let healthScore = 100;
+      if (st.hasCorruption) healthScore -= 45;
+      healthScore -= Math.round(fragPercent * 0.35);
+      if (usedPercent > 85) healthScore -= 15;
+      healthScore = Math.max(10, healthScore);
+
+      const scoreColor = healthScore >= 80 ? "#10b981" : healthScore >= 50 ? "#f59e0b" : "#ef4444";
+
+      const recommendations = [];
+      if (st.hasCorruption) {
+        recommendations.push("🚨 Виявлено пошкодження ланцюжків FAT! Негайно натисніть «Запустити CHKDSK / SCANDISK» для відновлення таблиці розміщення.");
+      }
+      if (fragPercent > 20) {
+        if (st.fs === "apfs") {
+          recommendations.push(`ℹ️ Рівень розкиданості блоків становить ${fragPercent}%, проте для APFS на SSD це нормальне явище завдяки Copy-on-Write.`);
+        } else {
+          recommendations.push(`⚡ Виявлено фрагментацію (${fragPercent}%). Рекомендується виконати «Дефрагментація / Оптимізація» для прискорення послідовного читання.`);
+        }
+      } else {
+        recommendations.push("✅ Розміщення файлів у секторах оптимальне — головка/контролер зчитує дані послідовно без зайвих затримок.");
+      }
+
+      if (st.fs === "fat16") {
+        recommendations.push("📌 Особливість FAT16: усі імена автоматично обрізаються до стандарту 8.3, а права доступу та журнал відсутні.");
+      } else if (st.fs === "ntfs") {
+        const compFiles = files.filter(f => f.compressed).length;
+        recommendations.push(`📌 NTFS Аналітика: активних стиснених файлів — ${compFiles}. Спробуйте увімкнути «Стиснення (LZNT1)» для великих текстових файлів, щоб звільнити кластери.`);
+      } else if (st.fs === "ext4") {
+        recommendations.push(`📌 ext4 Аналітика: використано ${files.length} дескрипторів inode. Спільних блоків через жорсткі посилання: ${savedBySharing} бл.`);
+      } else if (st.fs === "apfs") {
+        recommendations.push(`📌 APFS CoW Ефективність: завдяки Copy-on-Write зекономлено ${savedBySharing} фізичних блоків (${savedBySharing * 4} КБ) за рахунок спільного використання даних клонами.`);
+      }
+
+      openModal(
+        `🧠 ШІ-Діагностика віртуального диска (${FS_METADATA[st.fs].name})`,
+        `
+          <div style="margin-bottom: 12px;">
+            <span class="ai-score-pill" style="background:${scoreColor}; color:#fff;">
+              Індекс здоров'я диска: ${healthScore} / 100
+            </span>
+          </div>
+
+          <div class="ai-section">
+            <h4>📊 Метрики низькорівневої структури</h4>
+            <p>• Заповненість тома: <strong>${usedPercent}%</strong> (${sysCount} системних + ${physicalBlocksUsed} даних + ${freeCount} вільних секторів)</p>
+            <p>• Рівень фрагментації кластерів: <strong>${fragPercent}%</strong></p>
+            <p>• Кількість об'єктів у каталогах: <strong>${st.items.length - 1}</strong> (${files.length} файлів)</p>
+            <p>• Економія фізичних блоків (CoW / Hardlinks): <strong>${savedBySharing} бл. (${savedBySharing * 4} КБ)</strong></p>
+          </div>
+
+          <div class="ai-section">
+            <h4>💡 Висновки та рекомендації ШІ-асистента</h4>
+            <ul style="margin-left: 18px; display:flex; flex-direction:column; gap:6px;">
+              ${recommendations.map(r => `<li>${r}</li>`).join("")}
+            </ul>
+          </div>
+        `,
+        [{ label: "Закрити звіт", primary: true, onClick: closeModal }]
+      );
+    }
+
+    /* =====================================================================
+       РЕНДЕРИНГ ІНТЕРФЕЙСУ
+       ===================================================================== */
+    function renderAll() {
+      const st = getState();
+      const meta = FS_METADATA[st.fs];
+
+      // Оновлення теми та верхніх бейджів
+      document.body.className = `theme-${st.fs}`;
+      document.getElementById("fmWindowTitle").textContent = meta.windowTitle;
+      document.getElementById("fsRuleBadge").textContent = meta.ruleBadge;
+      document.getElementById("diskStructureBadge").textContent = meta.diskBadge;
+
+      // Кнопка CHKDSK видима лише у FAT16 за наявності пошкоджень
+      document.getElementById("btnChkdsk").style.display = (st.fs === "fat16" && st.hasCorruption) ? "inline-flex" : "none";
+
+      // Кнопки специфічних можливостей у тулбарі
+      document.getElementById("btnHardLink").style.display = st.fs === "ext4" ? "inline-flex" : "none";
+      document.getElementById("btnSymLink").style.display = st.fs === "ext4" ? "inline-flex" : "none";
+      document.getElementById("btnSnapshot").style.display = st.fs === "apfs" ? "inline-flex" : "none";
+      const btnRestore = document.getElementById("btnRestoreSnapshot");
+      btnRestore.style.display = st.fs === "apfs" ? "inline-flex" : "none";
+      btnRestore.disabled = !st.snapshot;
+
+      renderInfoBanner(meta);
+      renderFileManager(st);
+      renderDiskVisualizer(st);
+      renderLogs(st);
+    }
+
+    function renderInfoBanner(meta) {
+      const banner = document.getElementById("fsInfoBanner");
+      banner.innerHTML = `
+        <div class="info-chip"><strong>Рік та платформа</strong>${meta.year}</div>
+        <div class="info-chip"><strong>Макс. розмір файлу / тома</strong>${meta.maxFile} • Том: ${meta.maxVolume}</div>
+        <div class="info-chip" style="grid-column: span 2;"><strong>Головна архітектурна фішка</strong>${meta.feature}</div>
+      `;
+    }
+
+    function buildPathString(st) {
+      const chain = [];
+      let curr = st.items.find(i => i.id === st.cwd);
+      while (curr) {
+        chain.unshift(curr.name);
+        curr = st.items.find(i => i.id === curr.parentId);
+      }
+      const sep = (st.fs === "fat16" || st.fs === "ntfs") ? "\\" : "/";
+      return chain.join(sep).replace(/\\\\/g, "\\").replace(/\/\//g, "/");
+    }
+
+    function renderFileManager(st) {
+      document.getElementById("currentPathDisplay").textContent = buildPathString(st);
+      document.getElementById("btnGoUp").disabled = st.cwd === "root";
+
+      const listEl = document.getElementById("fmList");
+      const children = st.items
+        .filter(i => i.parentId === st.cwd)
+        .sort((a, b) => (b.isDir - a.isDir) || a.name.localeCompare(b.name));
+
+      if (children.length === 0) {
+        listEl.innerHTML = `<div style="padding:24px; text-align:center; color:var(--text-muted);">Папка порожня. Створіть новий файл або папку зверху.</div>`;
+      } else {
+        listEl.innerHTML = children.map(item => {
+          const isSelected = item.id === st.selectedId;
+          const isCorrupted = item.blocks.some(bIdx => st.disk[bIdx]?.corrupted);
+          const isCowShared = st.fs === "apfs" && item.blocks.some(bIdx => st.disk[bIdx]?.owners.length > 1);
+          const icon = item.isDir ? "📁" : item.symlinkTarget ? "↪️" : "📄";
+
+          // Розмір
+          let sizeStr = "—";
+          if (!item.isDir) {
+            if (item.symlinkTarget) {
+              sizeStr = "0 КБ (link)";
+            } else {
+              sizeStr = `${item.blocks.length * 4} КБ (${item.blocks.length} бл.)`;
+            }
+          }
+
+          // Метадані залежно від ФС
+          let metaStr = "";
+          if (st.fs === "fat16") {
+            metaStr = item.isDir ? "<DIR>" : (item.blocks.length ? `Clust #${item.blocks[0]}` : "Empty");
+          } else if (st.fs === "ntfs") {
+            metaStr = `MFT #${item.metaId}`;
+          } else if (st.fs === "ext4") {
+            metaStr = `inode ${item.metaId}`;
+          } else if (st.fs === "apfs") {
+            metaStr = `OID #${item.metaId}`;
+          }
+
+          // Права та бейджі
+          let attrHtml = "";
+          if (st.fs === "fat16") {
+            attrHtml = `<span class="badge">ARCHIVE</span>`;
+          } else if (st.fs === "ntfs") {
+            attrHtml = `<span class="badge">${item.perms}</span>`;
+            if (item.compressed) attrHtml += ` <span class="badge badge-comp">ZIP</span>`;
+            if (item.hidden) attrHtml += ` <span class="badge">HID</span>`;
+          } else if (st.fs === "ext4") {
+            attrHtml = `<span class="badge">${item.perms}</span>`;
+            const hardCount = !item.isDir ? st.items.filter(x => !x.isDir && x.metaId === item.metaId).length : 1;
+            if (hardCount > 1) attrHtml += ` <span class="badge">links:${hardCount}</span>`;
+          } else if (st.fs === "apfs") {
+            attrHtml = isCowShared
+              ? `<span class="badge badge-cow">CoW Shared</span>`
+              : `<span class="badge">APFS Obj</span>`;
+          }
+
+          if (isCorrupted) {
+            attrHtml += ` <span class="badge badge-err">ERR!</span>`;
+          }
+
+          return `
+            <div class="fm-row ${isSelected ? "selected" : ""} ${isCorrupted ? "corrupted" : ""}" data-id="${item.id}">
+              <div class="file-name-cell">
+                ${!item.isDir ? `<span class="color-swatch" style="background:${item.color};"></span>` : ""}
+                <span>${icon}</span>
+                <span class="file-title ${item.hidden ? "hidden-attr" : ""}" title="${item.name}">${item.name}</span>
+              </div>
+              <div>${sizeStr}</div>
+              <div style="font-family:var(--font-mono); font-size:0.78rem;">${metaStr}</div>
+              <div>${attrHtml}</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Обробники кліку та подвійного кліку
+      listEl.querySelectorAll(".fm-row").forEach(row => {
+        row.addEventListener("click", () => {
+          st.selectedId = row.dataset.id;
+          renderAll();
+        });
+        row.addEventListener("dblclick", () => {
+          const item = st.items.find(i => i.id === row.dataset.id);
+          if (!item) return;
+          if (item.isDir) {
+            st.cwd = item.id;
+            st.selectedId = null;
+            renderAll();
+          } else if (item.symlinkTarget) {
+            const target = st.items.find(i => i.parentId === item.parentId && i.name === item.symlinkTarget);
+            if (target) {
+              openFileEditorModal(target);
+            } else {
+              showNotification("Бите посилання (Broken Symlink)", `Цільовий файл «${item.symlinkTarget}» було видалено або переміщено!`);
+            }
+          } else {
+            openFileEditorModal(item);
+          }
+        });
+      });
+
+      renderSelectedInspector(st);
+    }
+
+    function renderSelectedInspector(st) {
+      const box = document.getElementById("selectedInspector");
+      const item = st.items.find(i => i.id === st.selectedId);
+      if (!item) {
+        box.innerHTML = `<div style="color:var(--text-muted);">Оберіть файл або папку зі списку (подвійний клік — відкрити/редагувати). Підсвічування секторів на диску працює автоматично.</div>`;
+        return;
+      }
+
+      const frag = isFileFragmented(item);
+      const chainText = item.isDir
+        ? "Запис у каталозі"
+        : item.symlinkTarget
+          ? `Вказує на шлях: ${item.symlinkTarget}`
+          : `[${item.blocks.join(" → ")}] ${frag ? "⚠️ Фрагментований" : "✅ Суміжний"}`;
+
+      let fsSpecificButtons = "";
+      if (st.fs === "ntfs" && !item.isDir) {
+        fsSpecificButtons = `
+          <button class="btn btn-xs" id="actNtfsComp">${item.compressed ? "📦 Розпакувати" : "🗜️ Стиснути (LZNT1)"}</button>
+          <button class="btn btn-xs" id="actNtfsHid">${item.hidden ? "👁️ Показати" : "🙈 Приховати"}</button>
+          <button class="btn btn-xs" id="actNtfsPerm">🔐 Права (${item.perms})</button>
+        `;
+      } else if (st.fs === "ext4") {
+        fsSpecificButtons = `
+          <button class="btn btn-xs" id="actExt4Perm">🔐 chmod (${item.perms})</button>
+        `;
+      }
+
+      box.innerHTML = `
+        <div class="inspector-top">
+          <div>
+            <strong>${item.isDir ? "📁" : "📄"} ${item.name}</strong>
+            <span style="color:var(--text-muted); margin-left:8px; font-family:var(--font-mono); font-size:0.75rem;">
+              Сектори: ${chainText}
+            </span>
+          </div>
+          <div class="inspector-actions">
+            ${!item.isDir && !item.symlinkTarget ? `<button class="btn btn-xs btn-primary" id="actEdit">✏️ Редагувати</button>` : ""}
+            ${!item.isDir && !item.symlinkTarget ? `<button class="btn btn-xs" id="actCopy">${st.fs === "apfs" ? "🧬 Клонувати (CoW)" : "📋 Копіювати"}</button>` : ""}
+            <button class="btn btn-xs" id="actRename">🏷️ Перейменувати</button>
+            ${fsSpecificButtons}
+            <button class="btn btn-xs btn-danger" id="actDelete">🗑️ Видалити</button>
+          </div>
+        </div>
+      `;
+
+      const bind = (id, fn) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("click", fn);
+      };
+
+      bind("actEdit", () => openFileEditorModal(item));
+      bind("actCopy", () => copyOrCloneItem(item.id));
+      bind("actRename", () => openRenameModal(item));
+      bind("actDelete", () => deleteItem(item.id));
+      bind("actNtfsComp", () => toggleNtfsCompression(item.id));
+      bind("actNtfsHid", () => toggleNtfsHidden(item.id));
+      bind("actNtfsPerm", () => cycleNtfsPerms(item.id));
+      bind("actExt4Perm", () => cycleExt4Perms(item.id));
+    }
+
+    function renderDiskVisualizer(st) {
+      const grid = document.getElementById("diskGrid");
+      const selectedItem = st.items.find(i => i.id === st.selectedId);
+      const highlightedBlocks = new Set(selectedItem ? selectedItem.blocks : []);
+
+      // Телеметрія
+      const sysCount = FS_METADATA[st.fs].sysBlocks.length;
+      const dataCount = st.disk.filter(b => b.type === "data").length;
+      const freeCount = TOTAL_BLOCKS - sysCount - dataCount;
+      const fragPct = calculateFragmentationPercent(st);
+
+      document.getElementById("teleUsed").textContent = `${sysCount + dataCount} / ${TOTAL_BLOCKS}`;
+      document.getElementById("teleFree").textContent = `${freeCount} (${freeCount * 4} КБ)`;
+      document.getElementById("teleFrag").textContent = `${fragPct}%`;
+      document.getElementById("teleFrag").style.color = fragPct > 25 ? "#ef4444" : "inherit";
+      document.getElementById("teleMeta").textContent = `${sysCount} бл.`;
+
+      grid.innerHTML = st.disk.map(blk => {
+        let classes = ["disk-block"];
+        let bgStyle = "";
+        let tag = "";
+
+        if (blk.type === "system") {
+          classes.push("system");
+          tag = blk.label;
+        } else if (blk.type === "data") {
+          const primaryOwner = st.items.find(i => i.id === blk.owners[0]);
+          if (primaryOwner) {
+            bgStyle = `background-color: ${primaryOwner.color}; color: #ffffff;`;
+            const partIdx = primaryOwner.blocks.indexOf(blk.index);
+            tag = st.fs === "ext4" ? `i:${primaryOwner.metaId}` : `#${partIdx >= 0 ? partIdx : 0}`;
+            if (isFileFragmented(primaryOwner)) classes.push("fragmented");
+          } else {
+            tag = "LOST";
+          }
+
+          if (blk.owners.length > 1 && st.fs === "apfs") {
+            classes.push("cow-shared");
+          }
+          if (blk.snapshotLocked) {
+            classes.push("snapshot-locked");
+          }
+          if (blk.corrupted) {
+            classes.push("corrupted-block");
+            tag = "BAD!";
+          }
+        } else {
+          tag = "—";
+        }
+
+        if (highlightedBlocks.has(blk.index)) {
+          classes.push("highlighted");
+        }
+
+        return `
+          <div class="${classes.join(" ")}" style="${bgStyle}" data-idx="${blk.index}">
+            <span class="block-num">${String(blk.index).padStart(2, "0")}</span>
+            <span class="block-tag">${tag}</span>
+          </div>
+        `;
+      }).join("");
+
+      // Події наведення та кліку по блоках
+      grid.querySelectorAll(".disk-block").forEach(cell => {
+        const idx = Number(cell.dataset.idx);
+        cell.addEventListener("mouseenter", (e) => {
+          hoveredBlockIdx = idx;
+          updateSectorInspectorAndTooltip(st, idx, e);
+        });
+        cell.addEventListener("mousemove", (e) => {
+          moveTooltip(e);
+        });
+        cell.addEventListener("mouseleave", () => {
+          hoveredBlockIdx = null;
+          document.getElementById("floatingTooltip").style.display = "none";
+        });
+        cell.addEventListener("click", () => {
+          const blk = st.disk[idx];
+          if (blk && blk.type === "data" && blk.owners.length > 0) {
+            const owner = st.items.find(i => i.id === blk.owners[0]);
+            if (owner) {
+              st.cwd = owner.parentId || "root";
+              st.selectedId = owner.id;
+              renderAll();
+            }
+          }
+        });
+      });
+    }
+
+    function updateSectorInspectorAndTooltip(st, idx, mouseEvent) {
+      const blk = st.disk[idx];
+      const liveBar = document.getElementById("sectorLiveBar");
+      const tooltip = document.getElementById("floatingTooltip");
+
+      if (blk.type === "system") {
+        const html = `<strong>Сектор #${idx} [СИСТЕМНИЙ: ${blk.label}]</strong> — ${blk.desc}`;
+        liveBar.innerHTML = html;
+        tooltip.innerHTML = html;
+      } else if (blk.type === "free") {
+        const html = `<strong>Сектор #${idx} [ВІЛЬНИЙ]</strong> — 4 КБ доступно для алокації.`;
+        liveBar.innerHTML = html;
+        tooltip.innerHTML = html;
+      } else {
+        const owners = blk.owners.map(id => st.items.find(i => i.id === id)).filter(Boolean);
+        const ownerNames = owners.length ? owners.map(o => o.name).join(", ") : "LOST_CHAIN (втрачений кластер)";
+        const primary = owners[0];
+
+        let pointerInfo = "";
+        if (primary) {
+          const pos = primary.blocks.indexOf(idx);
+          const nextBlk = primary.blocks[pos + 1];
+          if (st.fs === "fat16") {
+            pointerInfo = nextBlk !== undefined ? `FAT Next -> #${nextBlk}` : "FAT -> EOF (0xFFFF)";
+          } else if (st.fs === "ntfs") {
+            pointerInfo = `MFT #${primary.metaId} • VCN #${pos} ${primary.compressed ? "(LZNT1)" : ""}`;
+          } else if (st.fs === "ext4") {
+            pointerInfo = `inode #${primary.metaId} • Extent #${pos}`;
+          } else if (st.fs === "apfs") {
+            pointerInfo = `OID #${primary.metaId} • CoW RefCount: ${blk.owners.length}${blk.snapshotLocked ? " [Snapshot 🔒]" : ""}`;
+          }
+        }
+
+        const preview = (blk.dataSlice || "").replace(/\n/g, "↵").slice(0, 46);
+        liveBar.innerHTML = `
+          <div><strong>Сектор #${idx}</strong> | Файл: <span style="color:var(--accent);">${ownerNames}</span> | ${pointerInfo}</div>
+          <div style="color:var(--text-muted); margin-top:2px;">Вміст: "${preview}${blk.dataSlice.length > 46 ? "..." : ""}"</div>
+        `;
+        tooltip.innerHTML = `
+          <div style="color:#38bdf8; font-weight:700; margin-bottom:3px;">Сектор #${idx} (4 КБ)</div>
+          <div>Власник: <strong>${ownerNames}</strong></div>
+          <div>Структура: ${pointerInfo}</div>
+          <div style="margin-top:4px; color:#cbd5e1; border-top:1px solid #334155; padding-top:3px;">"${preview}"</div>
+        `;
+      }
+
+      tooltip.style.display = "block";
+      moveTooltip(mouseEvent);
+    }
+
+    function moveTooltip(e) {
+      const tooltip = document.getElementById("floatingTooltip");
+      const pad = 14;
+      let left = e.clientX + pad;
+      let top = e.clientY + pad;
+      if (left + 295 > window.innerWidth) left = e.clientX - 300;
+      if (top + 115 > window.innerHeight) top = e.clientY - 115;
+      tooltip.style.left = left + "px";
+      tooltip.style.top = top + "px";
+    }
+
+    function renderLogs(st) {
+      document.getElementById("logCounter").textContent = `Подій: ${st.logs.length}`;
+      const container = document.getElementById("logEntries");
+      container.innerHTML = st.logs.map(l => `
+        <div class="log-entry ${l.level}">[${l.ts}] ${l.msg}</div>
+      `).join("");
+    }
+
+    /* =====================================================================
+       МОДАЛЬНІ ДІАЛОГИ (СТВОРЕННЯ, РЕДАГУВАННЯ, ПЕРЕЙМЕНУВАННЯ)
+       ===================================================================== */
+    function openModal(title, bodyHtml, buttons = []) {
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalBody").innerHTML = bodyHtml;
+      const foot = document.getElementById("modalFoot");
+      foot.innerHTML = "";
+      buttons.forEach(btn => {
+        const b = document.createElement("button");
+        b.className = `btn ${btn.primary ? "btn-primary" : ""}`;
+        b.textContent = btn.label;
+        b.addEventListener("click", btn.onClick);
+        foot.appendChild(b);
+      });
+      document.getElementById("modalBackdrop").classList.add("open");
+    }
+
+    function closeModal() {
+      document.getElementById("modalBackdrop").classList.remove("open");
+    }
+
+    function showNotification(title, message) {
+      openModal(title, `<p>${message}</p>`, [{ label: "ОК", primary: true, onClick: closeModal }]);
+    }
+
+    function openNewItemModal(isDir) {
+      const st = getState();
+      const hint = st.fs === "fat16"
+        ? "Увага: у FAT16 діє формат 8.3 (наприклад, ZVIT.TXT). Довгі або кириличні назви будуть автоматично скорочені!"
+        : "Підтримуються довгі імена Unicode та пробіли.";
+
+      openModal(
+        isDir ? "📁 Створити нову папку" : "📄 Створити текстовий файл",
+        `
+          <div class="form-group">
+            <label for="inpItemName">${isDir ? "Назва папки" : "Ім'я файлу"}</label>
+            <input type="text" id="inpItemName" class="form-control" placeholder="${isDir ? (st.fs === "fat16" ? "ARHIV" : "Нова папка") : (st.fs === "fat16" ? "NOTE.TXT" : "Новий_документ.txt")}" />
+            <small style="color:var(--text-muted); display:block; margin-top:4px;">${hint}</small>
+          </div>
+          ${!isDir ? `
+            <div class="form-group">
+              <label for="inpItemContent">Текстовий вміст (кожні 64 символи = 1 кластер на диску)</label>
+              <textarea id="inpItemContent" class="form-control" placeholder="Введіть текст файлу...">Тестовий вміст файлу для перевірки алокації блоків на віртуальному диску.</textarea>
+              <small id="liveBlockEstimate" style="color:var(--accent); font-weight:600;">Орієнтовний розмір: 2 блоки (8 КБ)</small>
+            </div>
+          ` : ""}
+        `,
+        [
+          { label: "Скасувати", onClick: closeModal },
+          {
+            label: "Створити",
+            primary: true,
+            onClick: () => {
+              const name = document.getElementById("inpItemName").value;
+              const content = isDir ? "" : document.getElementById("inpItemContent").value;
+              if (createItem({ name, isDir, content })) closeModal();
+            }
+          }
+        ]
+      );
+
+      if (!isDir) {
+        const ta = document.getElementById("inpItemContent");
+        const est = document.getElementById("liveBlockEstimate");
+        const updateEst = () => {
+          const b = calcNeededBlocks(ta.value, false);
+          est.textContent = `Довжина: ${ta.value.length} симв. → займе ${b} бл. (${b * 4} КБ)`;
+        };
+        updateEst();
+        ta.addEventListener("input", updateEst);
+      }
+      setTimeout(() => document.getElementById("inpItemName")?.focus(), 40);
+    }
+
+    function openFileEditorModal(item) {
+      const st = getState();
+      const isCowShared = st.fs === "apfs" && item.blocks.some(bIdx => st.disk[bIdx]?.owners.length > 1 || st.disk[bIdx]?.snapshotLocked);
+
+      openModal(
+        `✏️ Редагування: ${item.name}`,
+        `
+          ${isCowShared ? `
+            <div class="ai-section" style="border-color:#0284c7;">
+              <strong>🧬 Режим Copy-on-Write (APFS):</strong> Цей файл ділить фізичні блоки з іншим клоном або знімком. При збереженні змін APFS виділить нові сектори лише для змінених даних, не чіпаючи оригінал!
+            </div>
+          ` : ""}
+          <div class="form-group">
+            <label for="editContentArea">Вміст файлу (зміна довжини динамічно змінює кількість кластерів на диску):</label>
+            <textarea id="editContentArea" class="form-control">${item.content}</textarea>
+            <small id="editBlockEstimate" style="color:var(--accent); font-weight:600;"></small>
+          </div>
+        `,
+        [
+          { label: "Скасувати", onClick: closeModal },
+          {
+            label: "💾 Зберегти на диск",
+            primary: true,
+            onClick: () => {
+              const val = document.getElementById("editContentArea").value;
+              updateFileContent(item.id, val);
+              closeModal();
+            }
+          }
+        ]
+      );
+
+      const ta = document.getElementById("editContentArea");
+      const est = document.getElementById("editBlockEstimate");
+      const updateEst = () => {
+        const b = calcNeededBlocks(ta.value, item.compressed);
+        est.textContent = `Новий розмір: ${ta.value.length} симв. → ${b} бл. (${b * 4} КБ)${item.compressed ? " [з урахуванням стиснення NTFS]" : ""}`;
+      };
+      updateEst();
+      ta.addEventListener("input", updateEst);
+    }
+
+    function openRenameModal(item) {
+      openModal(
+        `🏷️ Перейменувати «${item.name}»`,
+        `
+          <div class="form-group">
+            <label for="renameInput">Нове ім'я:</label>
+            <input type="text" id="renameInput" class="form-control" value="${item.name}" />
+          </div>
+        `,
+        [
+          { label: "Скасувати", onClick: closeModal },
+          {
+            label: "Перейменувати",
+            primary: true,
+            onClick: () => {
+              renameItem(item.id, document.getElementById("renameInput").value);
+              closeModal();
+            }
+          }
+        ]
+      );
+      setTimeout(() => document.getElementById("renameInput")?.select(), 40);
+    }
+
+    /* =====================================================================
+       ПРИВ'ЯЗКА ПОДІЙ І ЗАПУСК
+       ===================================================================== */
+    document.querySelectorAll(".fs-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".fs-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        currentFS = tab.dataset.fs;
+        renderAll();
+      });
+    });
+
+    document.getElementById("btnNewFile").addEventListener("click", () => openNewItemModal(false));
+    document.getElementById("btnNewFolder").addEventListener("click", () => openNewItemModal(true));
+    document.getElementById("btnHardLink").addEventListener("click", () => createExt4Link("hard"));
+    document.getElementById("btnSymLink").addEventListener("click", () => createExt4Link("sym"));
+    document.getElementById("btnSnapshot").addEventListener("click", createApfsSnapshot);
+    document.getElementById("btnRestoreSnapshot").addEventListener("click", restoreApfsSnapshot);
+
+    document.getElementById("btnGoUp").addEventListener("click", () => {
+      const st = getState();
+      const curr = st.items.find(i => i.id === st.cwd);
+      if (curr && curr.parentId) {
+        st.cwd = curr.parentId;
+        st.selectedId = null;
+        renderAll();
+      }
+    });
+
+    document.getElementById("btnAiAnalyze").addEventListener("click", runAiDiskAnalysis);
+    document.getElementById("btnDefrag").addEventListener("click", runDefragmentation);
+    document.getElementById("btnPowerOutage").addEventListener("click", simulatePowerOutage);
+    document.getElementById("btnChkdsk").addEventListener("click", runChkdskRepair);
+    document.getElementById("btnFragmentDemo").addEventListener("click", runFragmentationDemo);
+
+    document.getElementById("btnResetDisk").addEventListener("click", () => {
+      stateByFS[currentFS] = createInitialState(currentFS);
+      renderAll();
+    });
+
+    document.getElementById("modalCloseBtn").addEventListener("click", closeModal);
+    document.getElementById("modalBackdrop").addEventListener("click", (e) => {
+      if (e.target.id === "modalBackdrop") closeModal();
+    });
+
+    // Початковий запуск
+    window.addEventListener("DOMContentLoaded", () => {
+      renderAll();
+    });
+  </script>
+</body>
+</html>
